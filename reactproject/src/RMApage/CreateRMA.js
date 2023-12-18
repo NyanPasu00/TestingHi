@@ -3,7 +3,6 @@ import React, { useState } from "react";
 
 export function CreateRMA({ handleRMA }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [confirmStatus, setconfirmStatus] = useState(false);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -51,6 +50,13 @@ export function CreateRMA({ handleRMA }) {
         }}
       >
         Submit
+      </button>
+       <button
+        onClick={() => {
+          handleRMA("cancel");
+        }}
+      >
+        Cancel
       </button>
       
     </>
