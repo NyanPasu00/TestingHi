@@ -1,50 +1,113 @@
 import React, { useState } from "react";
 
-export function RegisProduct({handleRegisProduct}) {
-  const [selectedFile, setSelectedFile] = useState(null);
+export function RegisProduct({ handleRegisProduct }) {
   const [productCount, setProductCount] = useState(1); // Initially, one product section is displayed
 
   const handleAddProduct = () => {
-    setProductCount(productCount + 1); 
+    setProductCount(productCount + 1);
   };
   const handleCancelProduct = () => {
-    if(productCount > 1){
-    setProductCount(productCount - 1); 
+    if (productCount > 1) {
+      setProductCount(productCount - 1);
     }
   };
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+  const handlePDFUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Handle the PDF file upload (e.g., send it to the server, process it, etc.)
+      console.log("Uploaded PDF file:", file);
+    } else {
+      console.log("Please select a PDF file.");
+    }
   };
 
-  
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Handle the image file upload (e.g., send it to the server, process it, etc.)
+      console.log("Uploaded image file:", file);
+    } else {
+      console.log("Please select an image file.");
+    }
+  };
+
   return (
     <>
       <h2>Register Product</h2>
       <h4>Customer Information</h4>
-    
-      <label for="fname">Full Name:</label>
+
+      <label htmlFor="fname">Full Name:</label>
       <br />
       <input type="text" id="fname" name="fname" />
       <br />
-      <label for="femail">Email :</label>
+
+      <label htmlFor="femail">Email :</label>
       <br />
       <input type="email" id="femail" name="femail" />
       <br />
-      <label for="fphone">Phone :</label>
+
+      <label htmlFor="fphone">Phone :</label>
       <br />
       <input type="text" id="fphone" name="fphone" />
       <br />
 
-      <label for="address">Address :</label><br />
-        <textarea id="address" name="address" rows="4" cols="50" placeholder="Enter your address..."></textarea>
+      <label htmlFor="streetAddress">Address:</label>
+      <br />
+      <input
+        type="text"
+        id="streetAddress"
+        name="streetAddress"
+        placeholder="Enter street address"
+      />
+      <br />
+     
+      <label htmlFor="streetAddress2">Address 2:</label>
+      <br />
+      <input
+        type="text"
+        id="streetAddress2"
+        name="streetAddress2"
+        placeholder="Enter second address line"
+      />
+      <br />
+      <label htmlFor="city">City:</label>
+      <br />
+      <input
+        type="text"
+        id="city"
+        name="city"
+        placeholder="Enter city"
+        required
+      />
+      <br />
+      <label htmlFor="postalCode">Postal Code:</label>
+      <br />
+      <input
+        type="text"
+        id="postalCode"
+        name="postalCode"
+        placeholder="Enter postal code"
+        required
+      />
+      <br />
+      <label htmlFor="country">Country:</label>
+      <br />
+      <input
+        type="text"
+        id="country"
+        name="country"
+        placeholder="Enter country"
+        required
+      />
+      <br />
 
-         {[...Array(productCount)].map((_, index) => (
-          
+      {[...Array(productCount)].map((_, index) => (
         <div key={index}>
           <h4>Product Information {index + 1}</h4>
           <label>Serial Number:</label>
-          <br /> 
+          <br />
           <input type="text" />
+          <button>Check Serial Number</button>
           <br />
           <label>Date of Purchase:</label>
           <br />
@@ -60,20 +123,32 @@ export function RegisProduct({handleRegisProduct}) {
       <button onClick={handleCancelProduct}>Cancel Product</button>
       <br />
 
-      <br /><br />
-      <label htmlFor="fileUpload">Upload Receipt or Invoice File:</label>
       <br />
+      <label>Please Upload Your Receipt or Invoice File:</label>
+      <br />
+      <br />
+      <div>Upload Receipt/Invoice with PDF file :</div>
       <input
         type="file"
-        id="fileUpload"
-        name="fileUpload"
-        onChange={handleFileChange}
+        id="pdfFileUpload"
+        name="pdfFileUpload"
+        accept=".pdf"
+        onChange={handlePDFUpload}
       />
-    
-      <p>Selected file: {selectedFile ? selectedFile.name : "None"}</p>
-        <button onClick={() => handleRegisProduct("registed")}>Submit</button>
-        <button onClick={() => handleRegisProduct("cancel")}>Cancel</button>
-     
+      <br />
+      <br />
+      <div>Upload Receipt/Invoice with Image file :</div>
+      <input
+        type="file"
+        id="imageFileUpload"
+        name="imageFileUpload"
+        accept="image/*"
+        onChange={handleImageUpload}
+      />
+      <br />
+      <br />
+      <button onClick={() => handleRegisProduct("registed")}>Submit</button>
+      <button onClick={() => handleRegisProduct("cancel")}>Cancel</button>
     </>
   );
 }
