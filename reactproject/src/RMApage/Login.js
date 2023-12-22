@@ -2,7 +2,6 @@ import React, { useEffect, useState ,useContext} from "react";
 import { auth, provider } from "../firebase";
 import { signInWithPopup } from "firebase/auth";
 import { Home } from "./Home";
-import AuthContext from "../context/AuthProvider";
 
 export function Login() {
   // const {setAuth} = useContext(AuthContext);
@@ -10,6 +9,7 @@ export function Login() {
   const [value,setValue] = useState('')
   const handleClick = () =>{
     signInWithPopup(auth,provider).then((data) =>{
+     
       setValue(data.user.email)
       localStorage.setItem("email",data.user.email)
     }).catch((error) => {
