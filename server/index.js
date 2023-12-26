@@ -19,14 +19,56 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
+app.get("/getUid", (req, res) => {
+  db.query("SELECT * FROM client.rma_uid", (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+app.get("/getAdminUid", (req, res) => {
+  db.query("SELECT * FROM client.admin_uid", (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+app.post("/insert", (req, res) => {
+  const email = req.body.email;
+  const name = req.body.name;
+  const uid = req.body.uid;
+
+  db.query(
+    `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Error inserting values");
+      } else {
+        console.log("Values Inserted");
+        res.status(200).send("Values Inserted");
+      }
+    }
+  );
+});
+
+//testing
 app.post("/create", (req, res) => {
   const name = req.body.name;
   const age = req.body.age;
   const country = req.body.country;
   const position = req.body.position;
-
+  const date = req.body.date;
   db.query(
-    `INSERT testing.testing SET name="${name}",age=${age},country="${country}",position="${position}"`,
+    `INSERT testing.testing SET name="${name}",age=${age},country="${country}",position="${position}" , date="${date}"`,
     (err, result) => {
       if (err) {
         console.error(err);
@@ -79,3 +121,6 @@ app.delete("/delete/:id", (req, res) => {
 app.listen(3001, () => {
   console.log("Running In Port 3001");
 });
+
+//design pattern 找一些跟React 有关系的
+//aws linux server

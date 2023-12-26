@@ -1,24 +1,13 @@
 import React, { useState } from "react";
 import { RegisProduct } from "./RegisProduct";
 import { CreateRMA } from "./CreateRMA";
-import { UserAuth } from "../context/AuthProvider";
 import "./style.css";
 export function Home() {
-
-  const { user, logOut } = UserAuth();
   const [orderStatus, setorderStatus] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
   const [instructionStatus, setinstructionStatus] = useState(false);
   const [rejectStatus, setrejectStatus] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await logOut();
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const handleInstruction = (instruction) => {
     setinstructionStatus(instruction === "close" ? false : true);
@@ -31,6 +20,11 @@ export function Home() {
       setrmaStatus(true);
     }
     setconfirmStatus(false);
+  };
+
+  const logout = () => {
+    localStorage.clear();
+    window.location.reload();
   };
 
   const handleRegisProduct = (product) => {
@@ -50,11 +44,10 @@ export function Home() {
   return (
     <div>
       <div>
-        <div>
-          <h1>Welcome to Home Page , {user?.displayName} , {user?.email}</h1>
-          <img src={user?.photoURL}></img> <br />
+        <h1>Welcome to Home Page , User!</h1>
 
-          <button onClick={() => handleSignOut()}>Logout</button>
+        <div>
+          <button onClick={logout}>Logout</button>
 
           <div>
             Step 1 : &nbsp;
@@ -63,42 +56,6 @@ export function Home() {
               <RegisProduct handleRegisProduct={handleRegisProduct} />
             ) : null}
           </div>
-       {/* Overlay */}
-      <div className={`overlay ${orderStatus ? 'show' : ''}`}>
-        <div className="overlay-content">
-          <div className={`content-inner ${orderStatus ? 'show-content' : ''}`}>
-            <RegisProduct handleRegisProduct={handleRegisProduct} />
-          </div>
-        </div>
-      </div>
-
-      {/* Styles for the overlay */}
-      <style>
-        {`
-          .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: ${orderStatus ? 'block' : 'none'};
-            overflow: auto; /* Allow overlay scrolling */
-          }
-          .overlay-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            max-height: 80%;
-            width:30%;
-            overflow-y: auto; /* Enable content scrolling */
-          }
-        `}
-      </style>
           <div>
             Step 2 : &nbsp;
             <button onClick={handleRMA}>Create RMA</button>

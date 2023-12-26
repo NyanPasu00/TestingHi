@@ -1,40 +1,77 @@
-import React, { useEffect, useState ,useContext} from "react";
-import { auth, provider } from "../firebase";
-import { signInWithPopup } from "firebase/auth";
-import { Home } from "./Home";
-
+import React, { useEffect, useState } from "react";
+import { UserAuth } from "../context/AuthProvider";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 export function Login() {
-  // const {setAuth} = useContext(AuthContext);
+  const { googleSignIn, user } = UserAuth();
+  const navigate = useNavigate();
 
-  const [value,setValue] = useState('')
-  const handleClick = () =>{
-    signInWithPopup(auth,provider).then((data) =>{
-     
-      setValue(data.user.email)
-      localStorage.setItem("email",data.user.email)
-    }).catch((error) => {
-      if (error.code === 'auth/cancelled-popup-request') {
-        // Handle popup cancellation
-        console.log('Authentication popup was canceled by the user.');
-        // Provide user feedback or perform actions (e.g., display a message)
+  const handleGoogleSignIn = async () => {
+    try {
+      await googleSignIn();
+    } catch (error) {
+      if (error.code === "auth/cancelled-popup-request") {
+        console.log("Authentication popup was canceled by the user.");
       } else {
-        // Handle other errors
-        console.error('Error signing in with Google:', error);
+        console.error("Error signing in with Google:", error);
       }
-    });
-  }
+    }
+  };
 
+  const checkAndInsertUser = (fetchedUid) => {
+    const checking = fetchedUid.filter((arr) => arr.uid === user?.uid);
+    console.log(checking);
+    if (checking.length === 0) {
+      axios
+        .post("http://localhost:3001/insert", {
+          email: user?.email,
+          name: user?.displayName,
+          uid: user?.uid,
+        })
+        .then(() => {
+          console.log("Sending Success");
+        })
+        .catch((error) => {
+          console.error("Error inserting data:", error);
+        });
+    }
+  };
   useEffect(() => {
-    setValue(localStorage.getItem('email'))
-  })
+    if (user != null) {
+      axios
+        .get("http://localhost:3001/getAdminUid")
+        .then((response) => {
+          const fetchedAdminUid = response.data;
+          const admin = fetchedAdminUid.filter((arr) => arr.admin_uid === user?.uid);
+          
+          if (admin.length === 1) {
+            navigate("/admin")
+          }else{
+            axios
+              .get("http://localhost:3001/getUid")
+              .then((response) => {
+                const fetchedUid = response.data;
+                checkAndInsertUser(fetchedUid);
+                navigate("/home");
+              })
+              .catch((error) => {
+                console.error("Error getting UID:", error);
+              });
+          }
+        })
+        .catch((error) => {
+          console.error("Error getting UID:", error);
+        });
+    }
+  }, [user]);
+
   return (
     <>
       <div>
         <h1>Login Page</h1>
-        
-    {value?<Home/>:
-        <button onClick={handleClick}>Sign In With Google</button>
-    }
+        <button onClick={() => handleGoogleSignIn()}>
+          Sign In With Google
+        </button>
       </div>
     </>
   );
