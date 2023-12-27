@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { UserAuth } from "../context/AuthProvider";
+import React, { useEffect, useState, useLayoutEffect, useContext } from "react";
+import AuthContext from "../context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getRedirectResult } from "firebase/auth";
+import { auth } from "../firebase";
 export function Login() {
-  const { googleSignIn, user } = UserAuth();
+  const { googleSignIn, user } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
@@ -18,45 +22,26 @@ export function Login() {
     }
   };
 
-  const checkAndInsertUser = (fetchedUid) => {
-    const checking = fetchedUid.filter((arr) => arr.uid === user?.uid);
-    console.log(checking);
-    if (checking.length === 0) {
+  useLayoutEffect(() => {
+    setIsLoading(true);
+
+    getRedirectResult(auth).finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (user != null) {
       axios
-        .post("http://localhost:3001/insert", {
+        .post("http://localhost:3001/loginInformation", {
           email: user?.email,
           name: user?.displayName,
           uid: user?.uid,
         })
-        .then(() => {
-          console.log("Sending Success");
-        })
-        .catch((error) => {
-          console.error("Error inserting data:", error);
-        });
-    }
-  };
-  useEffect(() => {
-    if (user != null) {
-      axios
-        .get("http://localhost:3001/getAdminUid")
         .then((response) => {
-          const fetchedAdminUid = response.data;
-          const admin = fetchedAdminUid.filter((arr) => arr.admin_uid === user?.uid);
-          
-          if (admin.length === 1) {
-            navigate("/admin")
-          }else{
-            axios
-              .get("http://localhost:3001/getUid")
-              .then((response) => {
-                const fetchedUid = response.data;
-                checkAndInsertUser(fetchedUid);
-                navigate("/home");
-              })
-              .catch((error) => {
-                console.error("Error getting UID:", error);
-              });
+          console.log(response.data);
+          if (response.data.admin) {
+            navigate("/admin");
+          } else {
+            navigate("/home");
           }
         })
         .catch((error) => {
@@ -68,10 +53,16 @@ export function Login() {
   return (
     <>
       <div>
-        <h1>Login Page</h1>
-        <button onClick={() => handleGoogleSignIn()}>
-          Sign In With Google
-        </button>
+        {isLoading ? (
+          "Loading..."
+        ) : (
+          <div>
+            <h1>Login Page</h1>
+            <button onClick={() => handleGoogleSignIn()}>
+              Sign In With Google
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

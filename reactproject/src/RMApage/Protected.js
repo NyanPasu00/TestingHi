@@ -1,16 +1,18 @@
-import React from 'react'
-import { UserAuth } from '../context/AuthProvider'
-import { Navigate } from 'react-router-dom';
+import React, { useContext } from "react";
+import AuthContext from "../context/AuthProvider";
+import { Navigate } from "react-router-dom";
+import Loading from "./Loading";
 
-export default function Protected({children}) {
+const Protected = ({ children }) => {
+  const { user } = useContext(AuthContext);
 
-    const {user} = UserAuth();
+  <Loading />;
 
-    if(!user) {
-        return <Navigate to='/'/>;
-     }
+  if (!user) {
+    return <Navigate to="/" />;
+  }
 
-     return children;
-      
-}
+  return children;
+};
 
+export default Protected;

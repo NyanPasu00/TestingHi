@@ -9,7 +9,7 @@ const OverlayExample = () => {
 
   return (
     <div>
-      <h1>Overlay Example1234</h1>
+      <h1>Overlay Example</h1>
       <button onClick={toggleOverlay}>Toggle Overlay</button>
       {showOverlay && (
         <div className="overlay">

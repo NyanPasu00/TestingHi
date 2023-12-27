@@ -1,8 +1,8 @@
-import React from "react";
-import { UserAuth } from "../context/AuthProvider";
+import React, { useContext } from "react";
+import AuthContext from "../context/AuthProvider";
 
 export default function Admin() {
-  const { user, logOut } = UserAuth();
+  const { user, logOut } = useContext(AuthContext);
 
   const handleSignOut = async () => {
     try {
@@ -14,7 +14,9 @@ export default function Admin() {
   return (
     <>
       <button onClick={() => handleSignOut()}>Logout</button>
-      <h1>Welcome to Admin Page , {user?.displayName} , {user?.email}</h1>
+      <h1>
+        Welcome to Admin Page , {user?.displayName} , {user?.email}
+      </h1>
       <img src={user?.photoURL}></img> <br />
     </>
   );

@@ -28,7 +28,7 @@ function App() {
             </Protected>
           }
         />
-         <Route
+        <Route
           path="/admin"
           element={
             <Protected>

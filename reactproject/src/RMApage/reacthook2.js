@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
-import moment from "moment";
+import axios, { Axios } from "axios";
 
 export function MyComponent() {
   const [name, setName] = useState("");
@@ -12,12 +11,6 @@ export function MyComponent() {
 
   const [employeeList, setEmployeeList] = useState([]);
 
-  const convertToMySQLDateTime = () => {
-    const currentDate = moment();
-    const mysqlDateTime = currentDate.format("YYYY-MM-DD HH:mm:ss");
-    return mysqlDateTime;
-  };
-
   const addEmployee = () => {
     axios
       .post("http://localhost:3001/create", {
@@ -25,9 +18,8 @@ export function MyComponent() {
         age: age,
         country: country,
         position: position,
-        date: convertToMySQLDateTime(),
       })
-      .then(() => {
+      .then((response) =>  {
         console.log("Sending Success");
       })
       .catch((error) => {
@@ -47,12 +39,10 @@ export function MyComponent() {
       });
   };
 
-  const updateEmployee = (id) => {
-    if(newAge > 0)
-    {
+  const updateEmployee = async (id) => {
     axios
       .put("http://localhost:3001/update", { age: newAge, id: id })
-      .then(() => {
+      .then((response) => {
         console.log("updating");
         setEmployeeList(
           employeeList.map((arr) => {
@@ -68,12 +58,10 @@ export function MyComponent() {
       .catch((error) => {
         console.error("Error updating employee:", error);
       });
-    }else
-    console.log("Number Cannot Under 0");
   };
 
   const deleteEmployee = (id) => {
-    axios.delete(`http://localhost:3001/delete/${id}`).then(() => {
+    axios.delete(`http://localhost:3001/delete/${id}`).then((response) => {
       console.log("Deleting");
       setEmployeeList(
         employeeList.filter((val) => {
@@ -127,7 +115,6 @@ export function MyComponent() {
               <h3>Age : {arr.age}</h3>
               <h3>Country : {arr.country}</h3>
               <h3>Position : {arr.position}</h3>
-              <h3>Date : {moment(arr.date).format("DD/MM/YYYY HH:mm:ss")}</h3>
               <div>
                 <input
                   type="text"

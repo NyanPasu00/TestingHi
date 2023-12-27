@@ -19,78 +19,70 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
-app.get("/getUid", (req, res) => {
-  db.query("SELECT * FROM client.rma_uid", (err, result) => {
+const commit = () => {
+  db.query("COMMIT;", (err, result) => {
     if (err) {
-      console.log(err);
-      res.status(500).send("Database query error");
-    } else {
-      res.send(result);
+      throw err;
     }
+    console.log("Committed");
   });
-});
+};
 
-app.get("/getAdminUid", (req, res) => {
-  db.query("SELECT * FROM client.admin_uid", (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("Database query error");
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.post("/insert", (req, res) => {
+app.post("/loginInformation", (req, res) => {
   const email = req.body.email;
   const name = req.body.name;
   const uid = req.body.uid;
 
-  db.query(
-    `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send("Error inserting values");
-      } else {
-        console.log("Values Inserted");
-        res.status(200).send("Values Inserted");
-      }
+  db.query("START TRANSACTION;", async (err, result) => {
+    if (err) {
+      throw err;
     }
-  );
+    console.log("Transaction Start");
+    db.query(
+      `SELECT IFNULL((SELECT 1 FROM client.rma_uid WHERE uid = "${uid}"),0) "RecordExists" , 
+       IFNULL((SELECT admin FROM client.rma_uid WHERE uid = "${uid}"),0) "admin"`,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send("Database query error");
+          commit();
+        } else {
+  
+          const recordExists = Boolean(result[0].RecordExists);
+          const isAdmin = Boolean(result[0].admin);
+
+          if (!recordExists) {
+            db.query(
+              `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
+              (err, result) => {
+                if (err) {
+                  console.error(err);
+                  res.status(500).send("Error inserting values");
+                } else {
+                  res.status(200).json({
+                    record: recordExists,
+                    admin: isAdmin,
+                    message: "Values Inserted",
+                  });
+                  commit();
+                }
+              }
+            );
+          } else {
+            res.status(200).json({
+              record: recordExists,
+              admin: isAdmin,
+              message: "Record Exists",
+            });
+            commit();
+          }
+        }
+      }
+    );
+  });
 });
 
 //testing
-app.post("/create", (req, res) => {
-  const name = req.body.name;
-  const age = req.body.age;
-  const country = req.body.country;
-  const position = req.body.position;
-  const date = req.body.date;
-  db.query(
-    `INSERT testing.testing SET name="${name}",age=${age},country="${country}",position="${position}" , date="${date}"`,
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send("Error inserting values");
-      } else {
-        console.log("Values Inserted");
-        res.status(200).send("Values Inserted");
-      }
-    }
-  );
-});
-
-app.get("/getemployee", (req, res) => {
-  db.query("SELECT * FROM testing.testing", (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("Database query error");
-    } else {
-      res.send(result);
-    }
-  });
-});
 
 app.put("/update", (req, res) => {
   const id = req.body.id;
@@ -121,6 +113,3 @@ app.delete("/delete/:id", (req, res) => {
 app.listen(3001, () => {
   console.log("Running In Port 3001");
 });
-
-//design pattern 找一些跟React 有关系的
-//aws linux server

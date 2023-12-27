@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { RegisProduct } from "./RegisProduct";
 import { CreateRMA } from "./CreateRMA";
-import { UserAuth } from "../context/AuthProvider";
+import AuthContext from "../context/AuthProvider";
 import "./style.css";
 export function Home() {
-
-  const { user, logOut } = UserAuth();
+  const { user, logOut } = useContext(AuthContext);
   const [orderStatus, setorderStatus] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
@@ -51,11 +50,11 @@ export function Home() {
     <div>
       <div>
         <div>
-          <h1>Welcome to Home Page , {user?.displayName} , {user?.email}</h1>
+          <h1>
+            Welcome to Home Page , {user?.displayName} , {user?.email}
+          </h1>
           <img src={user?.photoURL}></img> <br />
-
           <button onClick={() => handleSignOut()}>Logout</button>
-
           <div>
             Step 1 : &nbsp;
             <button onClick={handleRegisProduct}>Register Product</button>
@@ -63,18 +62,19 @@ export function Home() {
               <RegisProduct handleRegisProduct={handleRegisProduct} />
             ) : null}
           </div>
-       {/* Overlay */}
-      <div className={`overlay ${orderStatus ? 'show' : ''}`}>
-        <div className="overlay-content">
-          <div className={`content-inner ${orderStatus ? 'show-content' : ''}`}>
-            <RegisProduct handleRegisProduct={handleRegisProduct} />
+          {/* Overlay */}
+          <div className={`overlay ${orderStatus ? "show" : ""}`}>
+            <div className="overlay-content">
+              <div
+                className={`content-inner ${orderStatus ? "show-content" : ""}`}
+              >
+                <RegisProduct handleRegisProduct={handleRegisProduct} />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Styles for the overlay */}
-      <style>
-        {`
+          {/* Styles for the overlay */}
+          <style>
+            {`
           .overlay {
             position: fixed;
             top: 0;
@@ -82,7 +82,7 @@ export function Home() {
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            display: ${orderStatus ? 'block' : 'none'};
+            display: ${orderStatus ? "block" : "none"};
             overflow: auto; /* Allow overlay scrolling */
           }
           .overlay-content {
@@ -98,7 +98,7 @@ export function Home() {
             overflow-y: auto; /* Enable content scrolling */
           }
         `}
-      </style>
+          </style>
           <div>
             Step 2 : &nbsp;
             <button onClick={handleRMA}>Create RMA</button>
@@ -171,7 +171,6 @@ export function Home() {
               </button>
             </div>
           ) : null}
-
           {rejectStatus ? (
             <div style={{ border: "1px solid black", width: 700, padding: 30 }}>
               <p>

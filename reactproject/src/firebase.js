@@ -1,7 +1,10 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth ,GoogleAuthProvider } from "firebase/auth";
+import { getAuth ,GoogleAuthProvider} from "firebase/auth";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configurationcd
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAePx7On3NL9x1g7DVV0O8O1Q3ug4pPCZg",
   authDomain: "auth-testing-fb441.firebaseapp.com",
@@ -16,4 +19,3 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 export {auth,provider};
-
