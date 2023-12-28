@@ -1,5 +1,6 @@
+import { TextField } from "@mui/material";
 import React, { useState } from "react";
-
+import "./style.css"
 export function RegisProduct({ handleRegisProduct }) {
   const [productCount, setProductCount] = useState(1); // Initially, one product section is displayed
 
@@ -35,22 +36,35 @@ export function RegisProduct({ handleRegisProduct }) {
     <>
       <h2>Register Product</h2>
       <h4>Customer Information</h4>
-
-      <label htmlFor="fname">Full Name:</label>
-      <br />
-      <input type="text" id="fname" name="fname" />
-      <br />
-
-      <label htmlFor="femail">Email :</label>
-      <br />
-      <input type="email" id="femail" name="femail" />
-      <br />
-
-      <label htmlFor="fphone">Phone :</label>
-      <br />
-      <input type="text" id="fphone" name="fphone" />
-      <br />
-
+<div className="flex-container">
+  <div>
+      <TextField
+        label="Full Name"
+        id="fname"
+        size="small"
+        style={{width : '40ch' , textAlign : 'center'}}
+      />
+      </div>
+      <div>
+      <TextField
+        label="Email"
+        id="email"
+        size="small"
+        type="email"
+        style={{width : '40ch' , textAlign : 'center'}}
+      />
+      </div>
+      <div>
+      <TextField
+        label="Phone"
+        id="phone"
+        size="small"
+        type="tel"
+        style={{height:'10ch' , width : '40ch' , textAlign : 'center'}}
+      />
+      </div>
+      </div>
+      
       <label htmlFor="streetAddress">Address:</label>
       <br />
       <input
@@ -60,7 +74,7 @@ export function RegisProduct({ handleRegisProduct }) {
         placeholder="Enter street address"
       />
       <br />
-     
+
       <label htmlFor="streetAddress2">Address 2:</label>
       <br />
       <input

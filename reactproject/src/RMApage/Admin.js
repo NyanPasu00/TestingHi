@@ -17,7 +17,7 @@ export default function Admin() {
       <h1>
         Welcome to Admin Page , {user?.displayName} , {user?.email}
       </h1>
-      <img src={user?.photoURL}></img> <br />
+      <img src={user?.photoURL} alt={user?.displayName}></img> <br />
     </>
   );
 }

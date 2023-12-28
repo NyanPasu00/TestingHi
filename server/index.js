@@ -33,55 +33,92 @@ app.post("/loginInformation", (req, res) => {
   const name = req.body.name;
   const uid = req.body.uid;
 
-  db.query("START TRANSACTION;", async (err, result) => {
-    if (err) {
-      throw err;
-    }
-    console.log("Transaction Start");
-    db.query(
-      `SELECT IFNULL((SELECT 1 FROM client.rma_uid WHERE uid = "${uid}"),0) "RecordExists" , 
-       IFNULL((SELECT admin FROM client.rma_uid WHERE uid = "${uid}"),0) "admin"`,
-      (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(500).send("Database query error");
-          commit();
-        } else {
-  
-          const recordExists = Boolean(result[0].RecordExists);
-          const isAdmin = Boolean(result[0].admin);
+  // db.query("START TRANSACTION;", async (err, result) => {
+  //   if (err) {
+  //     throw err;
+  //   }
+  //   console.log("Transaction Start");
+  db.query(
+    `START TRANSACTION;
+       SELECT IFNULL((SELECT 1 FROM client.rma_uid WHERE uid = "${uid}"),0) "RecordExists" , 
+       IFNULL((SELECT admin FROM client.rma_uid WHERE uid = "${uid}"),0) "admin";
+       COMMIT;`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Database query error");
+        commit();
+      } else {
+        const recordExists = Boolean(result[0].RecordExists);
+        const isAdmin = Boolean(result[0].admin);
 
-          if (!recordExists) {
-            db.query(
-              `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
-              (err, result) => {
-                if (err) {
-                  console.error(err);
-                  res.status(500).send("Error inserting values");
-                } else {
-                  res.status(200).json({
-                    record: recordExists,
-                    admin: isAdmin,
-                    message: "Values Inserted",
-                  });
-                  commit();
-                }
+        if (!recordExists) {
+          db.query(
+            `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
+            (err, result) => {
+              if (err) {
+                console.error(err);
+                res.status(500).send("Error inserting values");
+              } else {
+                res.status(200).json({
+                  record: recordExists,
+                  admin: isAdmin,
+                  message: "Values Inserted",
+                });
+                commit();
               }
-            );
-          } else {
-            res.status(200).json({
-              record: recordExists,
-              admin: isAdmin,
-              message: "Record Exists",
-            });
-            commit();
-          }
+            }
+          );
+        } else {
+          res.status(200).json({
+            record: recordExists,
+            admin: isAdmin,
+            message: "Record Exists",
+          });
+          commit();
         }
       }
-    );
-  });
+    }
+  );
 });
+// });
 
+app.post("/loginInformation2", (req, res) => {
+  const email = req.body.email;
+  const name = req.body.name;
+  const uid = req.body.uid;
+
+  const query = `
+  INSERT INTO client.rma_uid (email, name, uid)
+  SELECT "${email}" AS email, "${name}" AS name, "${uid}" AS uid
+  FROM (SELECT 1) as Dummy
+  WHERE NOT EXISTS (SELECT 1 FROM client.rma_uid WHERE uid = "${uid}")
+  LIMIT 1;
+`;
+
+  db.query("START TRANSACTION;", async (err, result) => {
+      if (err) {
+        throw err;
+      }
+      console.log("Transaction Start");
+    });
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+      commit();
+    } else {
+      res.status(200).json({affectedRows : result.affectedRows});
+    }
+  });
+  db.query("COMMIT;",(err)=> {
+    if(err){
+      console.error("Commit Failed :",commitError);
+    }else{
+      console.log('Commit Completed');
+    }
+  })
+});
 //testing
 
 app.put("/update", (req, res) => {

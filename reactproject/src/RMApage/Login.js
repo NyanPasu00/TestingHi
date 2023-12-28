@@ -1,13 +1,16 @@
-import React, { useEffect, useState, useLayoutEffect, useContext } from "react";
+import React, { useEffect, useState, useLayoutEffect, useContext} from "react";
 import AuthContext from "../context/AuthProvider";
+import { UserContext } from "../context/UserProvider";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { getRedirectResult } from "firebase/auth";
 import { auth } from "../firebase";
+import Button from "@mui/material/Button";
+import axios from "axios";
+
 export function Login() {
   const { googleSignIn, user } = useContext(AuthContext);
+  const { setNewUser } = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(false);
-
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
@@ -24,20 +27,27 @@ export function Login() {
 
   useLayoutEffect(() => {
     setIsLoading(true);
+    const delayRedirect = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
 
-    getRedirectResult(auth).finally(() => setIsLoading(false));
-  }, []);
+    return () => clearTimeout(delayRedirect);
+  }, [user]);
 
   useEffect(() => {
     if (user != null) {
       axios
-        .post("http://localhost:3001/loginInformation", {
+        .post("http://localhost:3001/loginInformation2", {
           email: user?.email,
           name: user?.displayName,
           uid: user?.uid,
         })
         .then((response) => {
           console.log(response.data);
+          if(response.data.affectedRows)
+          {
+            setNewUser(true);
+          }
           if (response.data.admin) {
             navigate("/admin");
           } else {
@@ -54,15 +64,19 @@ export function Login() {
     <>
       <div>
         {isLoading ? (
-          "Loading..."
+          <div>Loading...</div>
         ) : (
           <div>
             <h1>Login Page</h1>
-            <button onClick={() => handleGoogleSignIn()}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => handleGoogleSignIn()}
+            >
               Sign In With Google
-            </button>
+            </Button>
           </div>
-        )}
+        )} 
       </div>
     </>
   );
