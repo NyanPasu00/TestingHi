@@ -1,15 +1,11 @@
 import React, { useEffect, useState, useLayoutEffect, useContext} from "react";
 import AuthContext from "../context/AuthProvider";
-import { UserContext } from "../context/UserProvider";
 import { useNavigate } from "react-router-dom";
-import { getRedirectResult } from "firebase/auth";
-import { auth } from "../firebase";
 import Button from "@mui/material/Button";
 import axios from "axios";
 
 export function Login() {
-  const { googleSignIn, user } = useContext(AuthContext);
-  const { setNewUser } = useContext(UserContext);
+  const { googleSignIn, user , setNewUser } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -29,7 +25,7 @@ export function Login() {
     setIsLoading(true);
     const delayRedirect = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(delayRedirect);
   }, [user]);
@@ -37,7 +33,7 @@ export function Login() {
   useEffect(() => {
     if (user != null) {
       axios
-        .post("http://localhost:3001/loginInformation2", {
+        .post("http://localhost:3001/loginInformation", {
           email: user?.email,
           name: user?.displayName,
           uid: user?.uid,

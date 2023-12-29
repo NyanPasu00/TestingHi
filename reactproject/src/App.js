@@ -7,6 +7,7 @@ import { Login } from "./RMApage/Login";
 import Protected from "./RMApage/Protected";
 import OverlayExample from "./RMApage/overlay";
 import Admin from "./RMApage/Admin";
+import { HomeCopy } from "./RMApage/Home copy";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="*" element={<NotFound />}></Route>
         <Route path="/overlay" element={<OverlayExample />}></Route>
         <Route path="/testhook" element={<Hook />}></Route>
+        <Route path="/example" element={<HomeCopy/>}></Route>
 
         <Route
           path="/home"

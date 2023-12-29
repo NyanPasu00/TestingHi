@@ -4,17 +4,15 @@ import { CreateRMA } from "./CreateRMA";
 import AuthContext from "../context/AuthProvider";
 import "./style.css";
 import { Avatar } from "@mui/material";
-import { UserContext } from "../context/UserProvider";
 export function Home() {
-  const { user, logOut } = useContext(AuthContext);
-  const { newUser } = useContext(UserContext);
+  const { user, logOut ,newUser} = useContext(AuthContext);
 
   const [orderStatus, setorderStatus] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
   const [instructionStatus, setinstructionStatus] = useState(false);
   const [rejectStatus, setrejectStatus] = useState(false);
-
+  
   const handleSignOut = async () => {
     try {
       await logOut();

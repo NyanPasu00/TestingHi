@@ -6,8 +6,7 @@ import Loading from "./Loading";
 const Protected = ({ children }) => {
   const { user } = useContext(AuthContext);
 
-  
-  
+
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
@@ -24,6 +23,7 @@ const Protected = ({ children }) => {
   if(loadingUser){
    return <Loading />;
   }
+   
   if (!user) {
     return <Navigate to="/" />;
   }else{

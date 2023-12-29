@@ -6,6 +6,8 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [newUser, setNewUser] = useState(false);
+  const [productData, setProductData] = useState({});
 
   const googleSignIn = () => {
     signInWithRedirect(auth, provider);
@@ -24,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
   return (
-    <AuthContext.Provider value={{ googleSignIn, logOut, user }}>
+    <AuthContext.Provider value={{ googleSignIn, logOut, user , newUser, setNewUser ,productData,setProductData }}>
       {children}
     </AuthContext.Provider>
   );

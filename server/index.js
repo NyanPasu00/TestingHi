@@ -19,71 +19,7 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
-const commit = () => {
-  db.query("COMMIT;", (err, result) => {
-    if (err) {
-      throw err;
-    }
-    console.log("Committed");
-  });
-};
-
 app.post("/loginInformation", (req, res) => {
-  const email = req.body.email;
-  const name = req.body.name;
-  const uid = req.body.uid;
-
-  // db.query("START TRANSACTION;", async (err, result) => {
-  //   if (err) {
-  //     throw err;
-  //   }
-  //   console.log("Transaction Start");
-  db.query(
-    `START TRANSACTION;
-       SELECT IFNULL((SELECT 1 FROM client.rma_uid WHERE uid = "${uid}"),0) "RecordExists" , 
-       IFNULL((SELECT admin FROM client.rma_uid WHERE uid = "${uid}"),0) "admin";
-       COMMIT;`,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(500).send("Database query error");
-        commit();
-      } else {
-        const recordExists = Boolean(result[0].RecordExists);
-        const isAdmin = Boolean(result[0].admin);
-
-        if (!recordExists) {
-          db.query(
-            `INSERT client.rma_uid SET email="${email}",name="${name}",uid="${uid}" `,
-            (err, result) => {
-              if (err) {
-                console.error(err);
-                res.status(500).send("Error inserting values");
-              } else {
-                res.status(200).json({
-                  record: recordExists,
-                  admin: isAdmin,
-                  message: "Values Inserted",
-                });
-                commit();
-              }
-            }
-          );
-        } else {
-          res.status(200).json({
-            record: recordExists,
-            admin: isAdmin,
-            message: "Record Exists",
-          });
-          commit();
-        }
-      }
-    }
-  );
-});
-// });
-
-app.post("/loginInformation2", (req, res) => {
   const email = req.body.email;
   const name = req.body.name;
   const uid = req.body.uid;
@@ -97,28 +33,78 @@ app.post("/loginInformation2", (req, res) => {
 `;
 
   db.query("START TRANSACTION;", async (err, result) => {
-      if (err) {
-        throw err;
-      }
-      console.log("Transaction Start");
-    });
+    if (err) {
+      throw err;
+    }
+    console.log("Transaction Start");
+  });
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).send("Database query error");
-      commit();
     } else {
-      res.status(200).json({affectedRows : result.affectedRows});
+      res.status(200).json({ affectedRows: result.affectedRows });
     }
   });
-  db.query("COMMIT;",(err)=> {
-    if(err){
-      console.error("Commit Failed :",commitError);
-    }else{
-      console.log('Commit Completed');
+  db.query("COMMIT;", (err) => {
+    if (err) {
+      console.error("Commit Failed :", commitError);
+    } else {
+      console.log("Commit Completed");
     }
-  })
+  });
 });
+
+app.post("/regisProduct", (req, res) => {
+  const name = req.body.name;
+  const email = req.body.email;
+  const phone = req.body.phone;
+  const address = req.body.address;
+  const address2 = req.body.address2;
+  const city = req.body.city;
+  const postcode = req.body.postcode;
+  const country = req.body.country;
+  const serialNum = req.body.serialNum;
+  const purchaseDate = req.body.purchaseDate;
+  const sellerName = req.body.sellerName;
+  const creatingDate = req.body.creatingDate;
+  const uid = req.body.uid;
+  const query = `
+  INSERT client.registerproduct
+  SET name = "${name}" , email = "${email}" , phone = "${phone}",address = "${address}"
+  , address2 = "${address2}", city = "${city}", postcode = ${postcode}, country = "${country}"
+  , serialNum = "${serialNum}", purchaseDate = STR_TO_DATE("${purchaseDate}","%d-%m-%Y"), sellerName = "${sellerName}" ,
+  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}";
+`;
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      res.status(200).send("Success");
+    }
+  });
+});
+
+app.get("/getregisProduct",(req,res) => {
+
+  const uid = req.query.uid;
+  const query = `
+  SELECT * FROM client.registerproduct
+  WHERE uid = "${uid}";
+  `
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      console.log(result);
+      res.status(200).json(result);
+      
+    }
+  });
+})
 //testing
 
 app.put("/update", (req, res) => {
