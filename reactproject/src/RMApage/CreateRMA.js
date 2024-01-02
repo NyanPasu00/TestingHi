@@ -1,21 +1,47 @@
 import { Button, TextField } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../context/AuthProvider";
 import "./style.css";
+import axios from "axios";
 export function CreateRMA({ handleRMA }) {
   const { productData } = useContext(AuthContext);
 
+  const [isChecked, setIsChecked] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
+  const [reasonReturn, setReasonReturn] = useState("");
 
   const handleconfirmStatus = (confirm) => {
-    console.log(confirmStatus);
-    setconfirmStatus(confirm === "created" ? true : false);
+    if (!productData.serialNum || !reasonReturn) {
+      alert("Please full in all required Fields");
+      return;
+    } else {
+      setconfirmStatus(confirm === "created" ? true : false);
+    }
   };
 
+  const handleDoubleConfirm = () => {
+    setconfirmStatus(false);
+    handleRMA("created");
+    createRMA();
+  };
+
+  const createRMA = () => {
+    axios
+      .post("http://localhost:3001/createRMA", {
+        rmaNum: generateRMANumber(),
+        reason: reasonReturn,
+        serialNum: productData.serialNum,
+      })
+      .then(() => {
+        console.log("Sending Success");
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+      });
+  };
   const handleImageChange = (event) => {
     const imageFile = event.target.files[0];
     if (imageFile) {
-      // Handle the image file upload
       console.log("Uploaded image file:", imageFile);
     } else {
       console.log("Please select an image file.");
@@ -31,6 +57,25 @@ export function CreateRMA({ handleRMA }) {
       console.log("Please select a video file.");
     }
   };
+
+  const handleCheckBoxChange = (event) => {
+    setIsChecked(event.target.checked);
+  };
+
+  const generateRMANumber = () => {
+    const prefix = "RMA";
+    const length = 4;
+    const randomPart = Array.from({ length }, () =>
+      Math.floor(Math.random() * 10).toString()
+    ).join("");
+
+    const rmaNumber = `${prefix}${randomPart}`;
+
+    return rmaNumber;
+  };
+
+  
+
   return (
     <>
       <div className="overlay">
@@ -54,7 +99,7 @@ export function CreateRMA({ handleRMA }) {
                     multiline
                     rows={2}
                     style={{ width: "100%" }}
-                    // onChange={}
+                    onChange={(e) => setReasonReturn(e.target.value)}
                     required
                   />
                 </div>
@@ -84,6 +129,7 @@ export function CreateRMA({ handleRMA }) {
                   evaluation.
                 </label>
               </div>
+            
               <div>
                 Upload Item with Image :
                 <input
@@ -143,32 +189,46 @@ export function CreateRMA({ handleRMA }) {
                       <div>{productData.address}</div>
                       <div>{productData.address2}</div>
                       <div>
-                      {productData.postcode},{productData.city},
+                        {productData.postcode},{productData.city},
                         {productData.country}
                       </div>
-        
-                      <div><b>Product Information</b></div> 
-                      <div>{productData.serialNum}</div>
-                      <div>Keyboard</div>
-                      <div></div>
-                      Reason of Return : Damaged <br />
-                      Warranty End Dates : 12/12/2025 <br />
+
+                      <div>
+                        <b>Product Information</b>
+                      </div>
+                      <div>Serial Number : {productData.serialNum}</div>
+                      <div>Product Name : Keyboard</div>
+                      <div>Reason of Return : {reasonReturn}</div>
                     </div>
                     <input
                       type="checkbox"
                       id="agreeTerms"
                       name="agreeTerms"
                       value="agreed"
+                      onChange={handleCheckBoxChange}
                     />
                     <label htmlFor="agreeTerms">
                       Make sure the above information is correct. Once
                       confirmed, it cannot be changed.
                     </label>
                     <br />
-                    <button onClick={handleconfirmStatus}>Confirm</button>
-                    <button onClick={() => handleconfirmStatus("cancel")}>
+                    <Button
+                      variant="contained"
+                      disabled={!isChecked}
+                      onClick={() => {
+                        handleDoubleConfirm();
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        handleconfirmStatus("cancel");
+                      }}
+                    >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

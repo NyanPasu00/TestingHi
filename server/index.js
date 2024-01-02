@@ -2,10 +2,22 @@ const express = require("express");
 const app = express();
 const mysql = require("mysql");
 const cors = require("cors");
-
+const multer = require("multer");
+const path = require("path");
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.json());
+app.use(express.static('uploads'));
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
 
 const db = mysql.createConnection({
   host: "localhost",
@@ -55,45 +67,54 @@ app.post("/loginInformation", (req, res) => {
   });
 });
 
-app.post("/regisProduct", (req, res) => {
-  const name = req.body.name;
-  const email = req.body.email;
-  const phone = req.body.phone;
-  const address = req.body.address;
-  const address2 = req.body.address2;
-  const city = req.body.city;
-  const postcode = req.body.postcode;
-  const country = req.body.country;
-  const serialNum = req.body.serialNum;
-  const purchaseDate = req.body.purchaseDate;
-  const sellerName = req.body.sellerName;
-  const creatingDate = req.body.creatingDate;
-  const uid = req.body.uid;
+app.post("/regisProduct", upload.single("file"), (req, res) => {
+  console.log(req.file)
+  const {
+    name,
+    email,
+    phone,
+    address,
+    address2,
+    city,
+    postcode,
+    country,
+    serialNum,
+    purchaseDate,
+    sellerName,
+    creatingDate,
+    uid,
+  } = req.body;
+  const uploadedFile = req.file.filename;
+
   const query = `
   INSERT client.registerproduct
   SET name = "${name}" , email = "${email}" , phone = "${phone}",address = "${address}"
   , address2 = "${address2}", city = "${city}", postcode = ${postcode}, country = "${country}"
   , serialNum = "${serialNum}", purchaseDate = STR_TO_DATE("${purchaseDate}","%d-%m-%Y"), sellerName = "${sellerName}" ,
-  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}";
+  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}";
 `;
+  console.log(uploadedFile);
 
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);
+
       res.status(500).send("Database query error");
     } else {
+      console.log(result);
       res.status(200).send("Success");
     }
   });
 });
 
-app.get("/getregisProduct",(req,res) => {
+app.post("/createrma", (req, res) => {
+  const rmaNum = req.body.rmaNum;
+  const reason = req.body.reason;
+  const serialNum = req.body.serialNum;
 
-  const uid = req.query.uid;
-  const query = `
-  SELECT * FROM client.registerproduct
-  WHERE uid = "${uid}";
-  `
+  const query = `INSERT client.createrma
+  SET rma_number = "${rmaNum}" , reason = "${reason}" , serialNum = "${serialNum}";`;
+
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);
@@ -101,10 +122,30 @@ app.get("/getregisProduct",(req,res) => {
     } else {
       console.log(result);
       res.status(200).json(result);
-      
     }
   });
-})
+});
+
+app.get("/getregisProduct", (req, res) => {
+  const uid = req.query.uid;
+  const query = `
+  SELECT R.id , R.name , R.serialNum , R.creatingDate , E.rma_number , E.reason 
+  , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
+  FROM client.registerproduct R
+  LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
+  WHERE uid = "${uid}";
+  `;
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      // console.log(result);
+      res.status(200).json(result);
+    }
+  });
+});
+
 //testing
 
 app.put("/update", (req, res) => {

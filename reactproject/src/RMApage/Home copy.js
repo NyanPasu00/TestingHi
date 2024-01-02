@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { RegisProduct } from "./RegisProduct";
 import { CreateRMA } from "./CreateRMA";
 import AuthContext from "../context/AuthProvider";
@@ -13,6 +13,21 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import axios from "axios";
 import moment from "moment";
+import Box from "@mui/material/Box";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepButton from "@mui/material/StepButton";
+import Typography from "@mui/material/Typography";
+
+const steps = [
+  {
+    label: "Register Order",
+    description:
+      "Hello, before you proceed to create an RMA, please register the product.It requires a series of checks to streamline the subsequent actions.",
+  },
+  { label: "Create RMA", description: "Create RMA" },
+];
+
 export function HomeCopy() {
   const { user, logOut, newUser, setProductData } = useContext(AuthContext);
 
@@ -22,6 +37,54 @@ export function HomeCopy() {
   const [rejectStatus, setrejectStatus] = useState(false);
   const [productTable, setProductTable] = useState([]);
 
+  //Stepper
+  const [activeStep, setActiveStep] = React.useState(0);
+  const [completed, setCompleted] = React.useState({});
+
+  const totalSteps = () => {
+    return steps.length;
+  };
+
+  const completedSteps = () => {
+    return Object.keys(completed).length;
+  };
+
+  const isLastStep = () => {
+    return activeStep === totalSteps() - 1;
+  };
+
+  const allStepsCompleted = () => {
+    return completedSteps() === totalSteps();
+  };
+
+  const handleNext = () => {
+    const newActiveStep =
+      isLastStep() && !allStepsCompleted()
+        ? // It's the last step, but not all steps have been completed,
+          // find the first step that has been completed
+          steps.findIndex((step, i) => !(i in completed))
+        : activeStep + 1;
+    setActiveStep(newActiveStep);
+  };
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  const handleStep = (step) => () => {
+    setActiveStep(step);
+  };
+
+  const handleComplete = () => {
+    const newCompleted = completed;
+    newCompleted[activeStep] = true;
+    setCompleted(newCompleted);
+    handleNext();
+  };
+
+  const handleReset = () => {
+    setActiveStep(0);
+    setCompleted();
+  };
   const handleSignOut = async () => {
     try {
       await logOut();
@@ -47,7 +110,7 @@ export function HomeCopy() {
     if (rma === "shortcut") {
       setrmaStatus(true);
     }
-
+    console.log(product);
     setrmaStatus(rma === "created" || rma === "cancel" ? false : true);
     if (product) {
       setProductData(product);
@@ -64,7 +127,7 @@ export function HomeCopy() {
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user]);
+  }, [user, orderStatus, rmaStatus]);
 
   useEffect(() => {
     document.title = "RMA";
@@ -98,7 +161,7 @@ export function HomeCopy() {
               <div className="function">
                 <h2>RMA Table</h2>
                 <div className="button">
-                  Step 1 : &nbsp;
+                  <b>Step 1 : &nbsp;</b>
                   <Button
                     variant="contained"
                     size="small"
@@ -109,97 +172,212 @@ export function HomeCopy() {
                   {orderStatus ? (
                     <RegisProduct handleRegisProduct={handleRegisProduct} />
                   ) : null}
-                  &nbsp;&nbsp;Step 2 : &nbsp;
-                  <Button variant="contained" size="small" onClick={handleRMA}>
-                    Create RMA
-                  </Button>
                   {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
                 </div>
               </div>
-              <TableContainer component={Paper}>
-                <Table
-                  sx={{ minWidth: 650 }}
-                  size="small"
-                  aria-label="simple table"
-                >
-                  <TableHead className="table_header">
-                    <TableRow>
-                      <TableCell
-                        align="center"
-                        style={{ fontWeight: "bold", width: "75px" }}
-                      >
-                        Register Date
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Customer Name
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Serial Number
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Product Name
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Warranty Status
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Warranty ExpiredDate
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Product Status
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        RMA Number
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        Reason of Return
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        RMA Status
-                      </TableCell>
-                      <TableCell align="center" style={{ fontWeight: "bold" }}>
-                        RMA Status
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {productTable.map((rmatable) => (
-                      <TableRow
-                        key={rmatable.serialNum}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell component="th" scope="row">
-                          {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
+              {productTable.length === 1 ? (
+                <TableContainer component={Paper}>
+                  <Table
+                    sx={{ minWidth: 650 }}
+                    size="small"
+                    aria-label="simple table"
+                  >
+                    <TableHead className="table_header">
+                      <TableRow>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold", width: "75px" }}
+                        >
+                          Register Date
                         </TableCell>
-                        <TableCell align="center">{rmatable.name}</TableCell>
-                        <TableCell align="center">
-                          {rmatable.serialNum}
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Customer Name
                         </TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">-</TableCell>
-                        <TableCell align="center">
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => {
-                              handleRMA("shortcut", rmatable);
-                            }}
-                          >
-                            Create RMA
-                          </Button>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Serial Number
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Product Name
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Warranty Status
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Warranty ExpiredDate
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Product Status
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          RMA Number
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          Reason of Return
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          RMA Status
+                        </TableCell>
+                        <TableCell
+                          align="center"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          
                         </TableCell>
                       </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productTable.map((rmatable) => (
+                        <TableRow
+                          key={rmatable.serialNum}
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
+                          </TableCell>
+                          <TableCell align="center">{rmatable.name}</TableCell>
+                          <TableCell align="center">
+                            {rmatable.serialNum}
+                          </TableCell>
+                          <TableCell align="center">
+                            <img
+                              src={
+                                `http://localhost:3001/` + rmatable.receiptImage
+                              }
+                              alt="Items"
+                              width="100px"
+                              height="100px"
+                            />
+                          </TableCell>
+                          <TableCell align="center">-</TableCell>
+                          <TableCell align="center">-</TableCell>
+                          <TableCell align="center">-</TableCell>
+                          <TableCell align="center">
+                            {rmatable.rma_number ?? "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {rmatable.reason ?? "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {rmatable.rmaStatus ?? "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                handleRMA("shortcut", rmatable);
+                              }}
+                            >
+                              Create RMA
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box sx={{ width: "50%", margin: "auto" }}>
+                  <Stepper
+                    nonLinear
+                    activeStep={activeStep}
+                    sx={{
+                      width: "100%", // Set the width to 100%
+                      padding: "24px", // Add padding for a larger appearance
+                    }}
+                  >
+                    {steps.map((step, index) => (
+                      <Step key={step.label} completed={completed[index]}>
+                        <StepButton color="inherit" onClick={handleStep(index)}>
+                          {step.label}
+                        </StepButton>
+                      </Step>
                     ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                  </Stepper>
+                  <div>
+                    {allStepsCompleted() ? (
+                      <React.Fragment>
+                        <Typography sx={{ mt: 2, mb: 1 }}>
+                          All steps completed - you&apos;re finished
+                        </Typography>
+                        <Box
+                          sx={{ display: "flex", flexDirection: "row", pt: 2 }}
+                        >
+                          <Box sx={{ flex: "1 1 auto" }} />
+                          <Button onClick={handleReset}>Reset</Button>
+                        </Box>
+                      </React.Fragment>
+                    ) : (
+                      <React.Fragment>
+                        <Typography sx={{ mt: 2, mb: 1, py: 1 }}>
+                          {steps[activeStep].description}
+                        </Typography>
+
+                        <Box
+                          sx={{ display: "flex", flexDirection: "row", pt: 2 }}
+                        >
+                          <Button
+                            color="inherit"
+                            disabled={activeStep === 0}
+                            onClick={handleBack}
+                            sx={{ mr: 1 }}
+                          >
+                            Back
+                          </Button>
+                          <Box sx={{ flex: "1 1 auto" }} />
+                          <Button onClick={handleNext} sx={{ mr: 1 }}>
+                            Next
+                          </Button>
+                          {activeStep !== steps.length &&
+                            (completed[activeStep] ? (
+                              <Typography
+                                variant="caption"
+                                sx={{ display: "inline-block" }}
+                              >
+                                Step {activeStep + 1} already completed
+                              </Typography>
+                            ) : (
+                              <Button onClick={handleComplete}>
+                                {completedSteps() === totalSteps() - 1
+                                  ? "Finish"
+                                  : "Complete Step"}
+                              </Button>
+                            ))}
+                        </Box>
+                      </React.Fragment>
+                    )}
+                  </div>
+                </Box>
+              )}
             </div>
           </main>
         </div>
