@@ -38,8 +38,7 @@ html {
 
 .function {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: right;
 }
 
 .overlay {
@@ -111,6 +110,7 @@ html {
   z-index: 100;
   width: 30%;
   height : 70px;
+  position: 'relative'
 }
 
 .insertRMA {

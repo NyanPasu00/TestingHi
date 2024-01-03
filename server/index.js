@@ -1,29 +1,34 @@
+require('dotenv1').config();
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
-const cors = require("cors");
-const multer = require("multer");
 const path = require("path");
+const multer = require("multer");
+const cors = require("cors");
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.json());
-app.use(express.static('uploads'));
+app.use(express.static("uploads"));
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+    cb(
+      null,
+      file.fieldname + "_" + Date.now() + path.extname(file.originalname)
+    );
   },
-});
+}); 
 
 const upload = multer({ storage: storage });
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "password",
-  database: "sql_workbench",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_DATABASE,
 });
 
 db.connect((err) => {
@@ -68,7 +73,7 @@ app.post("/loginInformation", (req, res) => {
 });
 
 app.post("/regisProduct", upload.single("file"), (req, res) => {
-  console.log(req.file)
+  console.log(req.file);
   const {
     name,
     email,
@@ -133,7 +138,7 @@ app.get("/getregisProduct", (req, res) => {
   , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
   FROM client.registerproduct R
   LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
-  WHERE uid = "${uid}";
+  WHERE uid = "${uid}" AND display = true;
   `;
   db.query(query, (err, result) => {
     if (err) {
@@ -146,6 +151,33 @@ app.get("/getregisProduct", (req, res) => {
   });
 });
 
+app.get("/serialnumber", (req, res) => {
+  const query = `SELECT * FROM client.product`;
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      // console.log(result);
+      res.status(200).json(result);
+    }
+  });
+});
+
+app.put("/cancelproduct", (req, res) => {
+  const id = req.query.id;
+
+  const query = `UPDATE client.registerproduct SET display = false WHERE id=${id}`;
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      // console.log(result);
+      res.status(200).json(result);
+    }
+  });
+});
 //testing
 
 app.put("/update", (req, res) => {

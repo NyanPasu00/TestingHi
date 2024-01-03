@@ -7,7 +7,7 @@ import { Login } from "./RMApage/Login";
 import Protected from "./RMApage/Protected";
 import OverlayExample from "./RMApage/overlay";
 import Admin from "./RMApage/Admin";
-import { HomeCopy } from "./RMApage/Home copy";
+import { HomeCopy } from "./RMApage/Home Copying";
 
 function App() {
   return (

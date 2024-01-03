@@ -91,23 +91,6 @@ export function RegisProduct({ handleRegisProduct }) {
     }
   };
   const regisProduct = () => {
-    // axios
-    //   .post("http://localhost:3001/regisProduct", {
-    //     name: fullName,
-    //     email: email,
-    //     phone: phone,
-    //     address: address.address,
-    //     address2: address.address2,
-    //     city: address.city,
-    //     postcode: address.postcode,
-    //     country: address.country,
-    //     serialNum: serialNum,
-    //     purchaseDate: moment(purchaseDate).format("DD-MM-YYYY"),
-    //     sellerName: sellerName,
-    //     creatingDate: moment().format("DD-MM-YYYY"),
-    //     uid: user?.uid,
-    //     file : selectedFile
-    //   })
     const formData = new FormData();
     formData.append("name", fullName);
     formData.append("email", email);
@@ -122,7 +105,7 @@ export function RegisProduct({ handleRegisProduct }) {
     formData.append("sellerName", sellerName);
     formData.append("creatingDate", moment().format("DD-MM-YYYY"));
     formData.append("uid", user?.uid);
-    formData.append("file", selectedFile); 
+    formData.append("file", selectedFile);
 
     axios
       .post("http://localhost:3001/regisProduct", formData, {
@@ -186,7 +169,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="tel"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -201,7 +183,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="address"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -216,7 +197,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="address"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -231,7 +211,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="address"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -246,7 +225,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="text"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -261,7 +239,6 @@ export function RegisProduct({ handleRegisProduct }) {
                     size="small"
                     type="text"
                     style={{
-                      height: "10ch",
                       width: "40ch",
                       textAlign: "center",
                     }}
@@ -270,7 +247,6 @@ export function RegisProduct({ handleRegisProduct }) {
                   />
                 </div>
               </div>
-
               {[...Array(productCount)].map((_, index) => (
                 <div key={index}>
                   <h3>Product Information {index + 1}</h3>
@@ -296,18 +272,20 @@ export function RegisProduct({ handleRegisProduct }) {
                       Check Serial Number
                     </Button>
 
-                    <div>
-                      Date of Purchase :
-                      <div className="datepicker-overlay">
-                        <DatePicker
-                          defaultValue={purchaseDate}
-                          onChange={(e) => setPurchaseDate(e)}
-                          format="DD/MM/YYYY"
-                          required
-                        />
-                      </div>
-                    </div>
-
+                        <div>
+                          Date of Purchase :
+                          <div className="datepicker-overlay">
+                            <DatePicker
+                              defaultValue={purchaseDate}
+                              onChange={(e) => setPurchaseDate(e)}
+                              format="DD/MM/YYYY"
+                              PopperProps={{
+                                placement: "right-end",
+                              }}
+                              required
+                            />
+                          </div>
+                        </div>
                     <div>
                       <TextField
                         label="Reseller Name"
@@ -334,37 +312,27 @@ export function RegisProduct({ handleRegisProduct }) {
                   </div>
                 </div>
               ))}
-              <label>Please Upload Your Receipt or Invoice File:</label>
-              <div>Upload Receipt/Invoice with PDF file :</div>
-              {/* <div>
-                <Button
-                  component="label"
-                  variant="contained"
-                  size="small"
-                  startIcon={<CloudUploadIcon />}
-                  onChange={handlePDFUpload}
-                >
-                  Upload file
-                  <VisuallyHiddenInput type="file" />
-                </Button>
-              </div> */}
-
-              <div>Upload Receipt/Invoice with Image file :</div>
+              <br />
               <div>
-                <Button
-                  component="label"
-                  variant="contained"
-                  size="small"
-                  startIcon={<CloudUploadIcon />}
-                >
-                  Upload file
-                  <VisuallyHiddenInput
-                    type="file"
-                    onChange={handleImageUpload}
-                    name="file"
-                  />
-                </Button>
+                <div>Upload Your Receipt/Invoice with PDF or Image file :</div>
+                <div style={{height: "100px"}}>
+                  <Button
+                    component="label"
+                    variant="contained"
+                    size="small"
+                    startIcon={<CloudUploadIcon />}
+
+                  >
+                    Upload file
+                    <VisuallyHiddenInput
+                      type="file"
+                      onChange={handleImageUpload}
+                      name="file"
+                    />
+                  </Button>
+                </div>
               </div>
+              <br />
               <div>
                 <Button variant="contained" type="submit">
                   Submit
