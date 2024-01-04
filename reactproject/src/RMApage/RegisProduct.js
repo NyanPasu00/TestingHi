@@ -6,10 +6,24 @@ import moment from "moment";
 import axios from "axios";
 import AuthContext from "../context/AuthProvider";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 export function RegisProduct({ handleRegisProduct }) {
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
+
   const { user } = useContext(AuthContext);
   const [productCount, setProductCount] = useState(1);
-
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,6 +38,9 @@ export function RegisProduct({ handleRegisProduct }) {
   const [purchaseDate, setPurchaseDate] = useState(moment());
   const [sellerName, setSellerName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [checkSerialResult, setCheckSerialResult] = useState(null);
+  const [serialResult, setSerialResult] = useState({});
+  const [imageUrl, setImageUrl] = useState(null);
 
   const handleAddProduct = () => {
     setProductCount(productCount + 1);
@@ -33,24 +50,34 @@ export function RegisProduct({ handleRegisProduct }) {
       setProductCount(productCount - 1);
     }
   };
-  // const handlePDFUpload = (event) => {
-  //   const file = event.target.files[0];
-  //   setSelectedFile(file);
-
-  //   if (file) {
-  //     // Handle the PDF file upload (e.g., send it to the server, process it, etc.)
-  //     console.log("Uploaded PDF file:", file);
-  //   } else {
-  //     console.log("Please select a PDF file.");
-  //   }
-  // };
 
   const handleImageUpload = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const file = event.target.files[0];
+    setSelectedFile(file);
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImageUrl(imageUrl);
+    }
+  };
+
+  const handleCheckSerialNumber = (serialnumber) => {
+    axios
+      .get(
+        "http://localhost:3001/checkserialnumber?serialnumber=" +
+          (serialnumber || "")
+      )
+      .then((response) => {
+        setCheckSerialResult(response.data.exists);
+        setSerialResult(response.data.result[0]);
+        console.log(serialResult);
+      })
+      .catch((error) => {
+        console.error("Error Getting data:", error);
+      });
   };
 
   useEffect(() => {
-    // This will be triggered whenever selectedFile changes
     if (selectedFile) {
       console.log("Uploaded image file:", selectedFile);
     } else {
@@ -121,17 +148,12 @@ export function RegisProduct({ handleRegisProduct }) {
       });
   };
 
-  const VisuallyHiddenInput = styled("input")({
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  });
+  const openImageInNewTab = () => {
+    if (selectedFile) {
+      const imageUrl = URL.createObjectURL(selectedFile);
+      window.open(imageUrl);
+    }
+  };
   return (
     <>
       <div class="overlay">
@@ -139,7 +161,7 @@ export function RegisProduct({ handleRegisProduct }) {
           <form onSubmit={handleCheckingRegisProduct}>
             <div class="regisProduct">
               <h1>Register Product</h1>
-              <h3>Customer Information</h3>
+              <h3>Contact Information</h3>
               <div className="flex-container">
                 <div>
                   <TextField
@@ -251,41 +273,98 @@ export function RegisProduct({ handleRegisProduct }) {
                 <div key={index}>
                   <h3>Product Information {index + 1}</h3>
                   <div>
-                    <TextField
-                      label="Serial Number"
-                      id="serialNum"
-                      size="small"
-                      type="text"
-                      style={{
-                        height: "7ch",
-                        width: "40ch",
-                        textAlign: "center",
-                      }}
-                      onChange={(e) => setSerialNum(e.target.value)}
-                      required
-                    />
-                    <Button
-                      variant="contained"
-                      size="small"
-                      style={{ width: "125px", height: "40px" }}
-                    >
-                      Check Serial Number
-                    </Button>
-
-                        <div>
-                          Date of Purchase :
-                          <div className="datepicker-overlay">
-                            <DatePicker
-                              defaultValue={purchaseDate}
-                              onChange={(e) => setPurchaseDate(e)}
-                              format="DD/MM/YYYY"
-                              PopperProps={{
-                                placement: "right-end",
-                              }}
-                              required
-                            />
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <TextField
+                        label="Serial Number"
+                        id="serialNum"
+                        size="small"
+                        type="text"
+                        style={{
+                          width: "40ch",
+                          textAlign: "center",
+                        }}
+                        onChange={(e) => {
+                          setSerialNum(e.target.value);
+                          setCheckSerialResult(null);
+                        }}
+                        required
+                        InputProps={{
+                          endAdornment: (
+                            <>
+                              {checkSerialResult === true && (
+                                <CheckCircleIcon style={{ color: "green" }} />
+                              )}
+                              {checkSerialResult === false && (
+                                <ReportProblemIcon
+                                  style={{ color: "orange" }}
+                                />
+                              )}
+                              {checkSerialResult === null && (
+                                <CancelIcon style={{ color: "red" }} />
+                              )}
+                            </>
+                          ),
+                        }}
+                      />
+                      <Button
+                        variant="contained"
+                        size="small"
+                        style={{ width: "125px", height: "40px" }}
+                        onClick={() => handleCheckSerialNumber(serialNum)}
+                      >
+                        Check Serial Number
+                      </Button>
+                      {checkSerialResult === true && (
+                        <div
+                          style={{
+                            border: "1px solid #ccc",
+                            borderRadius: "5px",
+                            padding: "10px",
+                            marginTop: "10px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              marginBottom: "5px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Serial Number: {serialResult.serialnumber}
                           </div>
+                          <div>Product Name: {serialResult.product_name}</div>
+                          <div>
+                            Warranty Expired Date:{" "}
+                            {moment(serialResult.date_manufacture).format(
+                              "DD-MM-YYYY"
+                            )}
+                          </div>
+                          <div>K Plus: {serialResult.kplus ? "Yes" : "No"}</div>
                         </div>
+                      )}
+                      {checkSerialResult === false && (
+                        <div>
+                          Your Serial Number Are Not In Our List , Please Check
+                          Correctly or After You Submit We check for you
+                        </div>
+                      )}
+                      {checkSerialResult === null && (
+                        <div>Please Check Serial Number</div>
+                      )}
+                    </div>
+                    <div>
+                      Date of Purchase :
+                      <div className="datepicker-overlay">
+                        <DatePicker
+                          defaultValue={purchaseDate}
+                          onChange={(e) => setPurchaseDate(e)}
+                          format="DD/MM/YYYY"
+                          PopperProps={{
+                            placement: "right-end",
+                          }}
+                          required
+                        />
+                      </div>
+                    </div>
                     <div>
                       <TextField
                         label="Reseller Name"
@@ -315,13 +394,12 @@ export function RegisProduct({ handleRegisProduct }) {
               <br />
               <div>
                 <div>Upload Your Receipt/Invoice with PDF or Image file :</div>
-                <div style={{height: "100px"}}>
+                <div style={{ height: "100px" }}>
                   <Button
                     component="label"
                     variant="contained"
                     size="small"
                     startIcon={<CloudUploadIcon />}
-
                   >
                     Upload file
                     <VisuallyHiddenInput
@@ -330,6 +408,28 @@ export function RegisProduct({ handleRegisProduct }) {
                       name="file"
                     />
                   </Button>
+                  {selectedFile && (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div>
+                        <p>
+                          Selected file:
+                          <a
+                            href="#"
+                            onClick={openImageInNewTab}
+                            style={{ marginLeft: "5px" }}
+                          >
+                            {selectedFile.name}
+                          </a>
+                        </p>
+
+                        {/* <img
+                          src={imageUrl}
+                          alt="Uploaded"
+                          style={{ maxWidth: "100px", maxHeight: "100px" }}
+                        /> */}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <br />

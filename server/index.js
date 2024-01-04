@@ -1,4 +1,4 @@
-require('dotenv1').config();
+require("dotenv1").config();
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
       file.fieldname + "_" + Date.now() + path.extname(file.originalname)
     );
   },
-}); 
+});
 
 const upload = multer({ storage: storage });
 
@@ -73,7 +73,6 @@ app.post("/loginInformation", (req, res) => {
 });
 
 app.post("/regisProduct", upload.single("file"), (req, res) => {
-  console.log(req.file);
   const {
     name,
     email,
@@ -98,7 +97,6 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
   , serialNum = "${serialNum}", purchaseDate = STR_TO_DATE("${purchaseDate}","%d-%m-%Y"), sellerName = "${sellerName}" ,
   creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}";
 `;
-  console.log(uploadedFile);
 
   db.query(query, (err, result) => {
     if (err) {
@@ -112,24 +110,35 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
   });
 });
 
-app.post("/createrma", (req, res) => {
-  const rmaNum = req.body.rmaNum;
-  const reason = req.body.reason;
-  const serialNum = req.body.serialNum;
+app.post(
+  "/createrma",
+  upload.fields([
+    { name: "imagefile", maxCount: 1 },
+    { name: "videofile", maxCount: 1 },
+  ]),
+  (req, res) => {
+    const imageFile = req.files["imagefile"].map(({ filename }) => filename);
+    const videoFile = req.files["videofile"].map(({ filename }) => filename);
+    console.log(imageFile);
+    console.log(videoFile);
+    const rmaNum = req.body.rmaNum;
+    const reason = req.body.reason;
+    const serialNum = req.body.serialNum;
+    const query = `INSERT client.createrma
+  SET rma_number = "${rmaNum}" , reason = "${reason}" , serialNum = "${serialNum}" 
+  , productImage="${imageFile}",productVideo="${videoFile}";`;
 
-  const query = `INSERT client.createrma
-  SET rma_number = "${rmaNum}" , reason = "${reason}" , serialNum = "${serialNum}";`;
-
-  db.query(query, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("Database query error");
-    } else {
-      console.log(result);
-      res.status(200).json(result);
-    }
-  });
-});
+    db.query(query, (err, result) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Database query error");
+      } else {
+        console.log(result);
+        res.status(200).json(result);
+      }
+    });
+  }
+);
 
 app.get("/getregisProduct", (req, res) => {
   const uid = req.query.uid;
@@ -164,10 +173,42 @@ app.get("/serialnumber", (req, res) => {
   });
 });
 
+app.get("/checkserialnumber", (req, res) => {
+  const serialnumber = req.query.serialnumber;
+  const query = `SELECT * FROM client.product WHERE serialnumber="${serialnumber}"`;
+  console.log(serialnumber);
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      const exists = result.length > 0;
+      
+      res.status(200).json({exists,result});
+
+    }
+  });
+});
 app.put("/cancelproduct", (req, res) => {
   const id = req.query.id;
 
   const query = `UPDATE client.registerproduct SET display = false WHERE id=${id}`;
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      res.status(200).json(result);
+    }
+  });
+});
+
+app.put("/updateAddress", (req, res) => {
+  const { serialNum, address, address2, city, postcode, country } = req.body;
+
+  const query = `UPDATE client.registerproduct SET address="${address}" , address2="${address2}" 
+  , city="${city}" , postcode="${postcode}" , country="${country}" WHERE serialNum="${serialNum}" `;
+
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);

@@ -86,7 +86,7 @@ export function Home() {
         console.error("Error Getting data:", error);
       });
 
-      handleCloseConfirm();
+    handleCloseConfirm();
   };
   const handleSignOut = async () => {
     try {
@@ -113,26 +113,24 @@ export function Home() {
     if (rma === "shortcut") {
       setrmaStatus(true);
     }
-    console.log(product);
     setrmaStatus(rma === "created" || rma === "cancel" ? false : true);
     if (product) {
       setProductData(product);
     }
   };
 
-  const handleInfo = () => {
-
-  }
+  const handleInfo = () => {};
   useEffect(() => {
     axios
       .get("http://localhost:3001/getregisProduct?uid=" + (user?.uid || ""))
       .then((response) => {
         setProductTable(response.data);
+        console.log(productTable);
       })
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, orderStatus, rmaStatus , open]);
+  }, [user, orderStatus, rmaStatus, open]);
 
   useEffect(() => {
     axios
@@ -153,12 +151,14 @@ export function Home() {
       <body>
         <div class="container">
           <main class="main-content">
-            {newUser ? <h3>Hii New User</h3> : <h3>Welcome Back User</h3>}
+            {newUser ? (
+              <h3>Hii New User , {user?.displayName}</h3>
+            ) : (
+              <h3>Welcome Back {user?.displayName} !</h3>
+            )}
             <div class="user-content">
               <div className="avatar-name-container">
-                <p>
-                  {user?.displayName} , {user?.email}
-                </p>
+                <p>{user?.email}</p>
                 <Avatar alt={user?.displayName} src={user?.photoURL} />
                 <Button
                   variant="contained"
@@ -189,188 +189,200 @@ export function Home() {
               </div>
               {productTable.length > 0 ? (
                 <>
-                  <h2>RMA Table</h2>
-                <TableContainer component={Paper}>
-                  <Table
-                    sx={{ minWidth: 650 }}
-                    size="small"
-                    aria-label="simple table"
-                  >
-                    <TableHead className="table_header">
-                      <TableRow>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold", width: "75px" }}
-                        >
-                          Register Date
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Customer Name
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Serial Number
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Receipt Picture
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Product Name
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Warranty ExpiredDate
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Product Status
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          RMA Number
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          Reason of Return
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          RMA Status
-                        </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        ></TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        ></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productTable.map((rmatable) => (
-                        <TableRow
-                          key={rmatable.serialNum}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell component="th" scope="row">
-                            {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
+                  <h2>My Product</h2>
+                  <TableContainer component={Paper}>
+                    <Table
+                      sx={{ minWidth: 650 }}
+                      size="small"
+                      aria-label="simple table"
+                    >
+                      <TableHead className="table_header">
+                        <TableRow>
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold", width: "75px" }}
+                          >
+                            Register Date
                           </TableCell>
-                          <TableCell align="center">{rmatable.name}</TableCell>
-                          <TableCell align="center">
-                            {rmatable.serialNum}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Customer Name
                           </TableCell>
-                          <TableCell align="center">
-                            <a
-                              href={`http://localhost:3001/${rmatable.receiptImage}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Receipt
-                            </a>
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Serial Number
                           </TableCell>
-                          <TableCell align="center">
-                            {" "}
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_name || "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Receipt Picture
                           </TableCell>
-                          <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.date_manufacture
-                              ? moment(
-                                  serialNumberTable.find(
-                                    (serial) =>
-                                      rmatable.serialNum === serial.serialnumber
-                                  ).date_manufacture
-                                ).format("DD-MM-YYYY")
-                              : "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Product Name  
                           </TableCell>
-                          <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_status || "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Warranty ExpiredDate
                           </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rma_number ?? "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Warranty Status
                           </TableCell>
-                          <TableCell align="center">
-                            {rmatable.reason ?? "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            RMA ID
                           </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rmaStatus ?? "-"}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            Reason of Return
                           </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rmaStatus ? <Button
-                              size="small"
-                              variant="contained"
-                              onClick={handleInfo()}
-                              style={{
-                                width: "30px",
-                                height: "40px",
-                                fontSize: "10px",
-                              }}
-                            >
-                              RMA Info
-                            </Button> : <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => {
-                                handleRMA("shortcut", rmatable);
-                              }}
-                              style={{
-                                width: "30px",
-                                height: "40px",
-                                fontSize: "10px",
-                              }}
-                            >
-                              Create RMA
-                            </Button>}
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            RMA Status
                           </TableCell>
-                          <TableCell align="center">
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => {
-                                handleOpenConfirm(rmatable.id);
-                              }}
-                              style={{ width: "30px", height: "40px" }}
-                            >
-                              Cancel
-                            </Button>
-                          </TableCell>
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          ></TableCell>
+                          <TableCell
+                            align="center"
+                            style={{ fontWeight: "bold" }}
+                          ></TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {productTable.map((rmatable) => (
+                          <TableRow
+                            key={rmatable.serialNum}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
+                            }}
+                          >
+                            <TableCell component="th" scope="row">
+                              {moment(rmatable.creatingDate).format(
+                                "DD-MM-YYYY"
+                              )}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.name}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.serialNum}
+                            </TableCell>
+                            <TableCell align="center">
+                              <a
+                                href={`http://localhost:3001/${rmatable.receiptImage}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Receipt
+                              </a>
+                            </TableCell>
+                            <TableCell align="center">
+                              {" "}
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.product_name || "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.date_manufacture
+                                ? moment(
+                                    serialNumberTable.find(
+                                      (serial) =>
+                                        rmatable.serialNum ===
+                                        serial.serialnumber
+                                    ).date_manufacture
+                                  ).format("DD-MM-YYYY")
+                                : "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.product_status || "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rma_number ?? "-"}
+                            </TableCell>
+                            <TableCell
+                              align="center"
+                              style={{ maxWidth: '350px', wordBreak: 'break-word' }}
+                            >
+                              {rmatable.reason ?? "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rmaStatus ?? "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rmaStatus ? (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  onClick={handleInfo()}
+                                  style={{
+                                    width: "30px",
+                                    height: "40px",
+                                    fontSize: "10px",
+                                  }}
+                                >
+                                  RMA Info
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  onClick={() => {
+                                    handleRMA("shortcut", rmatable);
+                                  }}
+                                  style={{
+                                    width: "30px",
+                                    height: "40px",
+                                    fontSize: "10px",
+                                  }}
+                                >
+                                  Create RMA
+                                </Button>
+                              )}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => {
+                                  handleOpenConfirm(rmatable.id);
+                                }}
+                                style={{ width: "30px", height: "40px" }}
+                              >
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </>
               ) : (
                 <Box sx={{ width: "50%", margin: "auto" }}>
@@ -657,7 +669,7 @@ export function Home() {
             </div>
           </div> */}
         </div>
-      </body> 
+      </body>
     </html>
   );
 }

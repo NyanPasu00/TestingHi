@@ -25,7 +25,7 @@ export function Login() {
     setIsLoading(true);
     const delayRedirect = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
 
     return () => clearTimeout(delayRedirect);
   }, [user]);

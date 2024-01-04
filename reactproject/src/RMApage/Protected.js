@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 import AuthContext from "../context/AuthProvider";
 import { Navigate } from "react-router-dom";
-import Loading from "./Loading";
+// import Loading from "./Loading";
 
 const Protected = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -20,10 +20,7 @@ const Protected = ({ children }) => {
     return () => clearTimeout(redirectTimer); // Clean up timer on component unmount or user change
   }, [user]);
 
-  if(loadingUser){
-   return <Loading />;
-  }
-   
+ 
   if (!user) {
     return <Navigate to="/" />;
   }else{

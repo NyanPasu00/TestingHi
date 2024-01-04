@@ -1,4 +1,12 @@
-import { Button, TextField } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import React, { useContext, useEffect, useState, useRef } from "react";
 import AuthContext from "../context/AuthProvider";
 import "./style.css";
@@ -22,10 +30,65 @@ export function CreateRMA({ handleRMA }) {
 
   const [isChecked, setIsChecked] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
+  const [editAddress, setEditAddress] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [confirmEditAddress, setConfirmEditAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState({
+    address: "",
+    address2: "",
+    city: "",
+    postcode: "",
+    country: "",
+  });
   const [reasonReturn, setReasonReturn] = useState("");
   const reasonTextFieldRef = useRef(null);
+  const [serialNumberTable, setSerialNumber] = useState([]);
 
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/serialnumber")
+      .then((response) => {
+        setSerialNumber(response.data);
+      })
+      .catch((error) => {
+        console.error("Error Getting data:", error);
+      });
+    document.title = "RMA";
+  }, []);
+
+  const handleNewAddress = (e) => {
+    const { id, value } = e.target;
+    setNewAddress({
+      ...newAddress,
+      [id]: value,
+    });
+  };
+  const handleEditAddress = () => {
+    setConfirmEditAddress(true);
+  };
+  const handleCancelEditAddress = () => {
+    setConfirmEditAddress(false);
+  };
+
+  const handleConfirmEditAddress = () => {
+    setEditAddress(true);
+    setConfirmEditAddress(false);
+  };
   const handleconfirmStatus = (confirm) => {
+    if (editAddress) {
+      if (
+        !newAddress.address ||
+        !newAddress.address2 ||
+        !newAddress.city ||
+        !newAddress.postcode ||
+        !newAddress.country
+      ) {
+        alert("Please full in all required Fields");
+        return;
+      }
+    }
+
     if (!productData.serialNum || !reasonReturn) {
       alert("Please full in all required Fields");
       return;
@@ -38,14 +101,42 @@ export function CreateRMA({ handleRMA }) {
     setconfirmStatus(false);
     handleRMA("created");
     createRMA();
+
+    if (editAddress) {
+      updateAddress();
+    }
+  };
+  const updateAddress = () => {
+    axios
+      .put("http://localhost:3001/updateAddress", {
+        serialNum: productData.serialNum,
+        address: newAddress.address,
+        address2: newAddress.address2,
+        city: newAddress.city,
+        postcode: newAddress.postcode,
+        country: newAddress.country,
+      })
+      .then(() => {
+        console.log("Sending Success");
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+      });
   };
 
   const createRMA = () => {
+    const formData = new FormData();
+    formData.append("rmaNum", generateRMANumber());
+    formData.append("reason", reasonReturn);
+    formData.append("serialNum", productData.serialNum);
+    formData.append("imagefile", imageFile);
+    formData.append("videofile", videoFile);
+
     axios
-      .post("http://localhost:3001/createRMA", {
-        rmaNum: generateRMANumber(),
-        reason: reasonReturn,
-        serialNum: productData.serialNum,
+      .post("http://localhost:3001/createRMA", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       .then(() => {
         console.log("Sending Success");
@@ -55,14 +146,27 @@ export function CreateRMA({ handleRMA }) {
       });
   };
   const handleImageChange = (event) => {
-    const imageFile = event.target.files[0];
-    if (imageFile) {
-      console.log("Uploaded image file:", imageFile);
-    } else {
-      console.log("Please select an image file.");
-    }
+    const image = event.target.files[0];
+    setImageFile(image);
   };
 
+  const handleVideoChange = (event) => {
+    const video = event.target.files[0];
+    setVideoFile(video);
+  };
+
+  const openImageInNewTab = () => {
+    if (imageFile) {
+      const imageUrl = URL.createObjectURL(imageFile);
+      window.open(imageUrl);
+    }
+  };
+  const openVideoInNewTab = () => {
+    if (videoFile) {
+      const videoUrl = URL.createObjectURL(videoFile);
+      window.open(videoUrl);
+    }
+  };
   const handleCheckBoxChange = (event) => {
     setIsChecked(event.target.checked);
   };
@@ -125,7 +229,12 @@ export function CreateRMA({ handleRMA }) {
                 <b>Product You Choose To Return :</b>
               </label>
               <div>Serial Number : {productData.serialNum}</div>
-              <div>Product Name : Keyboard</div>
+              <div>
+                Product Name :{" "}
+                {serialNumberTable.find(
+                  (serial) => productData.serialNum === serial.serialnumber
+                )?.product_name || "-"}{" "}
+              </div>
               <br />
               <div>Reason Of Return :</div>
               <div>
@@ -138,29 +247,117 @@ export function CreateRMA({ handleRMA }) {
                   style={{ width: "40%" }}
                   onChange={(e) => setReasonReturn(e.target.value)}
                   inputRef={reasonTextFieldRef}
+                  inputProps={{ maxLength: 45 }}
                   required
                 />
               </div>
 
               <div>
                 <b>Shipping Address :</b>
-              </div>
-              <div>{productData.address}</div>
-              <div>{productData.address2}</div>
-              <div>
-                {productData.city},{productData.postcode},{productData.country}
-              </div>
-              <div>
-                {/* <Button variant="contained" size="small">
-                  Edit
-                </Button>{" "} */}
+                <div style={{ paddingLeft: "10px" }}>
+                  {!editAddress ? (
+                    <div>
+                      <div>{productData.address}</div>
+                      <div>{productData.address2}</div>
+                      <div>
+                        {productData.city},{productData.postcode},
+                        {productData.country}
+                      </div>
+                      <div>
+                        <div style={{ paddingTop: "10px", textAlign: "right" }}>
+                          <Button
+                            onClick={handleEditAddress}
+                            variant="contained"
+                            size="small"
+                          >
+                            Edit
+                          </Button>{" "}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div>
+                        <TextField
+                          label="Address"
+                          id="address"
+                          size="small"
+                          type="address"
+                          style={{
+                            width: "40ch",
+                            textAlign: "center",
+                          }}
+                          onChange={handleNewAddress}
+                          required
+                        />
+                      </div>
+                      <div style={{ paddingTop: "10px" }}>
+                        <TextField
+                          label="Address 2"
+                          id="address2"
+                          size="small"
+                          type="address"
+                          style={{
+                            width: "40ch",
+                            textAlign: "center",
+                          }}
+                          onChange={handleNewAddress}
+                          required
+                        />
+                      </div>
+                      <div style={{ paddingTop: "10px" }}>
+                        <TextField
+                          label="City"
+                          id="city"
+                          size="small"
+                          type="address"
+                          style={{
+                            width: "40ch",
+                            textAlign: "center",
+                          }}
+                          onChange={handleNewAddress}
+                          required
+                        />
+                      </div>
+                      <div style={{ paddingTop: "10px" }}>
+                        <TextField
+                          label="Postal Code"
+                          id="postcode"
+                          size="small"
+                          type="text"
+                          style={{
+                            width: "40ch",
+                            textAlign: "center",
+                          }}
+                          onChange={handleNewAddress}
+                          required
+                        />
+                      </div>
+                      <div style={{ paddingTop: "10px" }}>
+                        <TextField
+                          label="Country"
+                          id="country"
+                          size="small"
+                          type="text"
+                          style={{
+                            width: "40ch",
+                            textAlign: "center",
+                          }}
+                          onChange={handleNewAddress}
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <b>
-                  Please verify that the above address <br /> is our intended
-                  shipping destination.
+                  Please confirm if the address shown above is <br /> where we
+                  want the items to be shipped.
                 </b>
               </div>
+              <div></div>
               <div>
                 <label htmlFor="fileUpload">
                   Please 'Choose File' to Show the item's condition for
@@ -179,10 +376,32 @@ export function CreateRMA({ handleRMA }) {
                   <VisuallyHiddenInput
                     type="file"
                     onChange={handleImageChange}
-                    name="file"
+                    name="imagefile"
                   />
                 </Button>
               </div>
+              {imageFile && (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <div>
+                    <p>
+                      Selected file:
+                      <a
+                        href="#"
+                        onClick={openImageInNewTab}
+                        style={{ marginLeft: "5px" }}
+                      >
+                        {imageFile.name}
+                      </a>
+                    </p>
+
+                    {/* <img
+                          src={imageUrl}
+                          alt="Uploaded"
+                          style={{ maxWidth: "100px", maxHeight: "100px" }}
+                        /> */}
+                  </div>
+                </div>
+              )}
               <div>
                 <label>Upload File With Video : </label>
                 <Button
@@ -194,11 +413,33 @@ export function CreateRMA({ handleRMA }) {
                   Upload file
                   <VisuallyHiddenInput
                     type="file"
-                    onChange={handleImageChange}
-                    name="file"
+                    onChange={handleVideoChange}
+                    name="videofile"
                   />
                 </Button>
               </div>
+              {videoFile && (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <div>
+                    <p>
+                      Selected file:
+                      <a
+                        href="#"
+                        onClick={openVideoInNewTab}
+                        style={{ marginLeft: "5px" }}
+                      >
+                        {videoFile.name}
+                      </a>
+                    </p>
+
+                    {/* <img
+                          src={imageUrl}
+                          alt="Uploaded"
+                          style={{ maxWidth: "100px", maxHeight: "100px" }}
+                        /> */}
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Button
@@ -236,7 +477,6 @@ export function CreateRMA({ handleRMA }) {
                   >
                     <h2>Your Info</h2>
                     <div style={containerStyle}>
-                      
                       <div>
                         <div>
                           <b>Customer Information</b>
@@ -257,11 +497,27 @@ export function CreateRMA({ handleRMA }) {
                           </div>
                           <div style={contentStyle}>
                             <label style={labelStyle}>Shipping Address :</label>
-                            <div>
-                              {productData.address}, {productData.address2},{" "}
-                              {productData.postcode}, {productData.city},{" "}
-                              {productData.country}
-                            </div>
+                            {editAddress ? (
+                              <div style={{ paddingTop: "10px" }}>
+                                <div>{newAddress.address}</div>
+                                <div>{newAddress.address2}</div>
+                                <div>
+                                  {newAddress.postcode},{newAddress.city},
+                                  {newAddress.country}
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div style={{ paddingTop: "10px" }}>
+                                  <div>{productData.address}</div>
+                                  <div>{productData.address2}</div>
+                                  <div>
+                                    {productData.postcode},{productData.city},
+                                    {productData.country}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -281,6 +537,31 @@ export function CreateRMA({ handleRMA }) {
                           <div style={contentStyle}>
                             <label style={labelStyle}>Reason of Return :</label>
                             <div>{reasonReturn}</div>
+                          </div>
+                          <div style={contentStyle}>
+                            <label style={labelStyle}>
+                              Supporting Information :
+                            </label>
+                            <div>
+                              <div>
+                                <a
+                                  href="#"
+                                  onClick={openImageInNewTab}
+                                  style={{ marginLeft: "5px" }}
+                                >
+                                  {imageFile.name}
+                                </a>
+                              </div>
+                              <div>
+                                <a
+                                  href="#"
+                                  onClick={openVideoInNewTab}
+                                  style={{ marginLeft: "5px" }}
+                                >
+                                  {videoFile.name}
+                                </a>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -325,6 +606,22 @@ export function CreateRMA({ handleRMA }) {
           </div>
         </div>
       </div>
+      <Dialog open={confirmEditAddress} onClose={handleEditAddress}>
+        <DialogTitle>Confirm Edit Address</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to change your address?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelEditAddress} color="primary">
+            No
+          </Button>
+          <Button onClick={handleConfirmEditAddress} color="primary" autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
