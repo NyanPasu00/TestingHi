@@ -23,7 +23,6 @@ export function RegisProduct({ handleRegisProduct }) {
   });
 
   const { user } = useContext(AuthContext);
-  const [productCount, setProductCount] = useState(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -34,20 +33,38 @@ export function RegisProduct({ handleRegisProduct }) {
     postcode: "",
     country: "",
   });
-  const [serialNum, setSerialNum] = useState("");
+  const [product, setProduct] = useState([
+    {
+      serialNum: "",
+      purchaseDate: moment().format("DD-MM-YYYY"),
+      sellerName: "",
+      checkSerialResult: null,
+      serialResult: {},
+    },
+  ]);
   const [purchaseDate, setPurchaseDate] = useState(moment());
-  const [sellerName, setSellerName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [checkSerialResult, setCheckSerialResult] = useState(null);
-  const [serialResult, setSerialResult] = useState({});
   const [imageUrl, setImageUrl] = useState(null);
-
+  const [productCount, setProductCount] = useState(1);
   const handleAddProduct = () => {
-    setProductCount(productCount + 1);
+    setProductCount(() => productCount + 1);
+    setProduct([
+      ...product,
+      {
+        serialNum: "",
+        checkSerialResult: null,
+        serialResult: null,
+        purchaseDate: moment().format("DD-MM-YYYY"),
+        sellerName: "",
+      },
+    ]);
   };
-  const handleCancelProduct = () => {
+  const handleCancelProduct = (indexToRemove) => {
     if (productCount > 1) {
-      setProductCount(productCount - 1);
+      setProductCount(() => productCount - 1);
+      setProduct((prevProducts) =>
+        prevProducts.filter((_, index) => index !== indexToRemove)
+      );
     }
   };
 
@@ -61,29 +78,72 @@ export function RegisProduct({ handleRegisProduct }) {
     }
   };
 
-  const handleCheckSerialNumber = (serialnumber) => {
+  const handleSerialNumberChange = (newValue, index) => {
+    setProduct((prevProducts) => {
+      const updatedProducts = [...prevProducts];
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        serialNum: newValue,
+      };
+      return updatedProducts;
+    });
+  };
+
+  const handleDateOfPurChaseChange = (newValue, index) => {
+    console.log(newValue._d);
+    setProduct((prevProducts) => {
+      const updatedProducts = [...prevProducts];
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        purchaseDate: moment(newValue._d).format("DD-MM-YYYY"),
+      };
+      return updatedProducts;
+    });
+  };
+
+  const handleSellerNameChange = (newValue, index) => {
+    setProduct((prevProducts) => {
+      const updatedProducts = [...prevProducts];
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        sellerName: newValue,
+      };
+      return updatedProducts;
+    });
+  };
+
+  const handleCheckSerialResultToNull = (value, index) => {
+    setProduct((prevProducts) => {
+      const updatedProducts = [...prevProducts];
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        checkSerialResult: value,
+      };
+      return updatedProducts;
+    });
+  };
+
+  const handleCheckSerialNumber = (serialnumber, index) => {
     axios
       .get(
         "http://localhost:3001/checkserialnumber?serialnumber=" +
           (serialnumber || "")
       )
       .then((response) => {
-        setCheckSerialResult(response.data.exists);
-        setSerialResult(response.data.result[0]);
-        console.log(serialResult);
+        setProduct((prevProducts) => {
+          const updatedProducts = [...prevProducts];
+          updatedProducts[index] = {
+            ...updatedProducts[index],
+            checkSerialResult: response.data.exists,
+            serialResult: response.data.result[0],
+          };
+          return updatedProducts;
+        });
       })
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
   };
-
-  useEffect(() => {
-    if (selectedFile) {
-      console.log("Uploaded image file:", selectedFile);
-    } else {
-      console.log("Please select an image file.");
-    }
-  }, [selectedFile]);
 
   const handleInputAddressChange = (e) => {
     const { id, value } = e.target;
@@ -104,48 +164,62 @@ export function RegisProduct({ handleRegisProduct }) {
       !address.city ||
       !address.postcode ||
       !address.country ||
-      !serialNum ||
-      !purchaseDate ||
-      !sellerName ||
       !selectedFile
     ) {
       alert("Please full in all required Fields");
       return;
-    } else {
+    }
+
+    let missingFields = false;
+
+    product.forEach((item, index) => {
+      if (!item.serialNum || !item.purchaseDate || !item.sellerName) {
+        missingFields = true;
+        alert("Some products have missing fields");
+      } else if (item.checkSerialResult === null) {
+        missingFields = true;
+        alert("Please Check Your Serial Number");
+        return;
+      }
+    });
+
+    if (!missingFields) {
       handleRegisProduct("registed");
       regisProduct();
       alert("Success Registered");
     }
   };
   const regisProduct = () => {
-    const formData = new FormData();
-    formData.append("name", fullName);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("address", address.address);
-    formData.append("address2", address.address2);
-    formData.append("city", address.city);
-    formData.append("postcode", address.postcode);
-    formData.append("country", address.country);
-    formData.append("serialNum", serialNum);
-    formData.append("purchaseDate", moment(purchaseDate).format("DD-MM-YYYY"));
-    formData.append("sellerName", sellerName);
-    formData.append("creatingDate", moment().format("DD-MM-YYYY"));
-    formData.append("uid", user?.uid);
-    formData.append("file", selectedFile);
+    product.forEach((item) => {
+      const formData = new FormData();
+      formData.append("name", fullName);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      formData.append("address", address.address);
+      formData.append("address2", address.address2);
+      formData.append("city", address.city);
+      formData.append("postcode", address.postcode);
+      formData.append("country", address.country);
+      formData.append("serialNum", item.serialNum);
+      formData.append("purchaseDate", item.purchaseDate);
+      formData.append("sellerName", item.sellerName);
+      formData.append("creatingDate", moment().format("DD-MM-YYYY"));
+      formData.append("uid", user?.uid);
+      formData.append("file", selectedFile);
 
-    axios
-      .post("http://localhost:3001/regisProduct", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then(() => {
-        console.log("Sending Success");
-      })
-      .catch((error) => {
-        console.error("Error sending data:", error);
-      });
+      axios
+        .post("http://localhost:3001/regisProduct", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then(() => {
+          console.log("Sending Success");
+        })
+        .catch((error) => {
+          console.error("Error sending data:", error);
+        });
+    });
   };
 
   const openImageInNewTab = () => {
@@ -154,12 +228,13 @@ export function RegisProduct({ handleRegisProduct }) {
       window.open(imageUrl);
     }
   };
+
   return (
     <>
-      <div class="overlay">
-        <div class="overlay-content">
+      <div className="overlay">
+        <div className="overlay-content">
           <form onSubmit={handleCheckingRegisProduct}>
-            <div class="regisProduct">
+            <div className="regisProduct">
               <h1>Register Product</h1>
               <h3>Contact Information</h3>
               <div className="flex-container">
@@ -269,37 +344,38 @@ export function RegisProduct({ handleRegisProduct }) {
                   />
                 </div>
               </div>
-              {[...Array(productCount)].map((_, index) => (
+              {product.map((product, index) => (
                 <div key={index}>
                   <h3>Product Information {index + 1}</h3>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center" }}>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <div style={{ display: "flex" }}>
                       <TextField
                         label="Serial Number"
-                        id="serialNum"
+                        id={`serialNum-${index}`}
                         size="small"
                         type="text"
                         style={{
                           width: "40ch",
                           textAlign: "center",
                         }}
+                        value={product.serialNum}
                         onChange={(e) => {
-                          setSerialNum(e.target.value);
-                          setCheckSerialResult(null);
+                          handleSerialNumberChange(e.target.value, index);
+                          handleCheckSerialResultToNull(null, index);
                         }}
                         required
                         InputProps={{
                           endAdornment: (
                             <>
-                              {checkSerialResult === true && (
+                              {product.checkSerialResult === true && (
                                 <CheckCircleIcon style={{ color: "green" }} />
                               )}
-                              {checkSerialResult === false && (
+                              {product.checkSerialResult === false && (
                                 <ReportProblemIcon
                                   style={{ color: "orange" }}
                                 />
                               )}
-                              {checkSerialResult === null && (
+                              {product.checkSerialResult === null && (
                                 <CancelIcon style={{ color: "red" }} />
                               )}
                             </>
@@ -310,17 +386,28 @@ export function RegisProduct({ handleRegisProduct }) {
                         variant="contained"
                         size="small"
                         style={{ width: "125px", height: "40px" }}
-                        onClick={() => handleCheckSerialNumber(serialNum)}
+                        onClick={() =>
+                          handleCheckSerialNumber(product.serialNum, index)
+                        }
                       >
                         Check Serial Number
                       </Button>
-                      {checkSerialResult === true && (
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "inherit", // Horizontal centering
+                        marginTop: "10px",
+                      }}
+                    >
+                      {product.checkSerialResult === true && (
                         <div
                           style={{
                             border: "1px solid #ccc",
                             borderRadius: "5px",
                             padding: "10px",
                             marginTop: "10px",
+                            width: "39.25%",
                           }}
                         >
                           <div
@@ -329,34 +416,53 @@ export function RegisProduct({ handleRegisProduct }) {
                               fontWeight: "bold",
                             }}
                           >
-                            Serial Number: {serialResult.serialnumber}
+                            Serial Number: {product.serialResult.serialnumber}
                           </div>
-                          <div>Product Name: {serialResult.product_name}</div>
+                          <div>
+                            Product Name: {product.serialResult.product_name}
+                          </div>
                           <div>
                             Warranty Expired Date:{" "}
-                            {moment(serialResult.date_manufacture).format(
-                              "DD-MM-YYYY"
-                            )}
+                            {moment(
+                              product.serialResult.date_manufacture
+                            ).format("DD-MM-YYYY")}
                           </div>
-                          <div>K Plus: {serialResult.kplus ? "Yes" : "No"}</div>
+                          <div>
+                            K Plus: {product.serialResult.kplus ? "Yes" : "No"}
+                          </div>
                         </div>
                       )}
-                      {checkSerialResult === false && (
-                        <div>
-                          Your Serial Number Are Not In Our List , Please Check
-                          Correctly or After You Submit We check for you
+                      {product.checkSerialResult === false && (
+                        <div
+                          style={{
+                            textAlign: "right",
+                            width: "41%",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Serial Number Are Not In Our List <br /> Please Check
+                          Correctly or <br /> After You Submit We check for you
                         </div>
                       )}
-                      {checkSerialResult === null && (
-                        <div>Please Check Serial Number</div>
+                      {product.checkSerialResult === null && (
+                        <div
+                          style={{
+                            textAlign: "right",
+                            width: "41%",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Please Check Serial Number
+                        </div>
                       )}
                     </div>
+
                     <div>
                       Date of Purchase :
                       <div className="datepicker-overlay">
                         <DatePicker
                           defaultValue={purchaseDate}
-                          onChange={(e) => setPurchaseDate(e)}
+                          onChange={(e) => handleDateOfPurChaseChange(e, index)}
                           format="DD/MM/YYYY"
                           PopperProps={{
                             placement: "right-end",
@@ -376,7 +482,9 @@ export function RegisProduct({ handleRegisProduct }) {
                           width: "40ch",
                           textAlign: "center",
                         }}
-                        onChange={(e) => setSellerName(e.target.value)}
+                        onChange={(e) =>
+                          handleSellerNameChange(e.target.value, index)
+                        }
                         required
                       />
                     </div>
@@ -385,9 +493,14 @@ export function RegisProduct({ handleRegisProduct }) {
                     <Button variant="contained" onClick={handleAddProduct}>
                       Add Product
                     </Button>
-                    <Button variant="contained" onClick={handleCancelProduct}>
-                      Cancel Product
-                    </Button>
+                    {index === 0 ? null : (
+                      <Button
+                        variant="contained"
+                        onClick={() => handleCancelProduct(index)}
+                      >
+                        Cancel Product
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

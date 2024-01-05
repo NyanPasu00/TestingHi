@@ -119,13 +119,10 @@ app.post(
   (req, res) => {
     const imageFile = req.files["imagefile"].map(({ filename }) => filename);
     const videoFile = req.files["videofile"].map(({ filename }) => filename);
-    console.log(imageFile);
-    console.log(videoFile);
-    const rmaNum = req.body.rmaNum;
     const reason = req.body.reason;
     const serialNum = req.body.serialNum;
     const query = `INSERT client.createrma
-  SET rma_number = "${rmaNum}" , reason = "${reason}" , serialNum = "${serialNum}" 
+  SET reason = "${reason}" , serialNum = "${serialNum}" 
   , productImage="${imageFile}",productVideo="${videoFile}";`;
 
     db.query(query, (err, result) => {
@@ -143,12 +140,13 @@ app.post(
 app.get("/getregisProduct", (req, res) => {
   const uid = req.query.uid;
   const query = `
-  SELECT R.id , R.name , R.serialNum , R.creatingDate , E.rma_number , E.reason 
-  , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
+  SELECT * , R.serialNum
   FROM client.registerproduct R
   LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
   WHERE uid = "${uid}" AND display = true;
   `;
+  // R.id , R.name , R.serialNum , R.creatingDate , E.rma_id , E.reason 
+  // , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);

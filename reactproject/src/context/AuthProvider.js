@@ -8,7 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [newUser, setNewUser] = useState(false);
   const [productData, setProductData] = useState({});
+  const [allRmaInfo, setallRmaInfo] = useState({});
 
+  const infoSectionStyle = {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    marginBottom: 10,
+  };
+
+  const labelStyle = {
+    marginRight: 10,
+    fontWeight: "bold",
+    minWidth: "150px",
+  };
+  const contentStyle = {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "5px",
+  };
   const googleSignIn = () => {
     signInWithRedirect(auth, provider);
   };
@@ -26,11 +44,24 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
   return (
-    <AuthContext.Provider value={{ googleSignIn, logOut, user , newUser, setNewUser ,productData,setProductData }}>
+    <AuthContext.Provider
+      value={{
+        googleSignIn,
+        logOut,
+        user,
+        newUser,
+        setNewUser,
+        productData,
+        setProductData,
+        allRmaInfo,
+        setallRmaInfo,
+        infoSectionStyle,
+        labelStyle,
+        contentStyle
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 export default AuthContext;
-
-

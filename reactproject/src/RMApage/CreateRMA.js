@@ -82,14 +82,15 @@ export function CreateRMA({ handleRMA }) {
         !newAddress.address2 ||
         !newAddress.city ||
         !newAddress.postcode ||
-        !newAddress.country
+        !newAddress.country 
+
       ) {
         alert("Please full in all required Fields");
         return;
       }
     }
 
-    if (!productData.serialNum || !reasonReturn) {
+    if (!productData.serialNum || !reasonReturn || !imageFile || !videoFile) {
       alert("Please full in all required Fields");
       return;
     } else {
@@ -126,7 +127,6 @@ export function CreateRMA({ handleRMA }) {
 
   const createRMA = () => {
     const formData = new FormData();
-    formData.append("rmaNum", generateRMANumber());
     formData.append("reason", reasonReturn);
     formData.append("serialNum", productData.serialNum);
     formData.append("imagefile", imageFile);
@@ -169,18 +169,6 @@ export function CreateRMA({ handleRMA }) {
   };
   const handleCheckBoxChange = (event) => {
     setIsChecked(event.target.checked);
-  };
-
-  const generateRMANumber = () => {
-    const prefix = "RMA";
-    const length = 4;
-    const randomPart = Array.from({ length }, () =>
-      Math.floor(Math.random() * 10).toString()
-    ).join("");
-
-    const rmaNumber = `${prefix}${randomPart}`;
-
-    return rmaNumber;
   };
 
   useEffect(() => {
