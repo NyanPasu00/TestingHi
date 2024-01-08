@@ -1,12 +1,15 @@
-import { Button, MenuItem, TextField } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthProvider";
+import axios from "axios";
 
 export default function RMAInfo({ handleInfo }) {
   const { allRmaInfo, infoSectionStyle, contentStyle, labelStyle } =
     useContext(AuthContext);
 
   const [copySuccess, setCopySuccess] = useState(false);
+  const [waybill, setWaybill] = useState("");
+  const [courier, setCourier] = useState("");
 
   const handleCopy = () => {
     const addressText = `39-3, Jalan SP 2/2, Taman Serdang Perdana, 43300 Seri Kembangan, Selangor, Malaysia`;
@@ -14,6 +17,21 @@ export default function RMAInfo({ handleInfo }) {
       .writeText(addressText)
       .then(() => setCopySuccess(true))
       .catch((err) => console.error("Failed to copy:", err));
+  };
+
+  const handleWaybill = () => {
+    axios
+      .put("http://localhost:3001/updateWaybill" , {
+        waybill : waybill,
+        courier : courier,
+        serialNum : allRmaInfo.serialNum
+      })
+      .then((response) => {
+      
+      })
+      .catch((error) => {
+        console.error("Error Getting data:", error);
+      });
   };
 
   return (
@@ -170,7 +188,7 @@ export default function RMAInfo({ handleInfo }) {
                 >
                   Copy
                 </Button>
-                {copySuccess && <span>Copy Success</span>}
+                {copySuccess && <div>Copy Success</div>}
               </div>
               <div>Please Insert Your WayBill Tracking Number</div>
               <div>
@@ -183,29 +201,30 @@ export default function RMAInfo({ handleInfo }) {
                     width: "40ch",
                     textAlign: "center",
                   }}
+                  onChange={(e) => setWaybill(e.target.value)}
                   required
                 />
               </div>
               <div>
                 <TextField
-                  select
                   label="Courier Provider"
                   id="courier"
                   size="small"
                   style={{
                     width: "40ch",
                   }}
+                  onChange={(e) => setCourier(e.target.value)}
                   required
                 >
-                  <MenuItem value="DHL Express">DHL Express</MenuItem>
+                  {/* <MenuItem value="DHL Express">DHL Express</MenuItem>
                   <MenuItem value="J & T Express">J & T Express</MenuItem>
-                  <MenuItem value="Flash Express">Flash Express</MenuItem>
                   <MenuItem value="Ninjavan">Ninjavan</MenuItem>
-                  <MenuItem value="Shopee Express">Shopee Express</MenuItem>
-                  <MenuItem value="Pos Laju">Pos Laju</MenuItem>
+                  <MenuItem value="Shopee Express">Shopee Express</MenuItem> */}
                 </TextField>
               </div>
-              <Button variant="contained">Submit</Button>
+              <Button variant="contained" style={{ width: "20px" }} onClick={handleWaybill}>
+                Submit
+              </Button>
             </div>
           )}
 

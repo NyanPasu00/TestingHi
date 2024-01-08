@@ -10,6 +10,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 export function RegisProduct({ handleRegisProduct }) {
+  const defaultDate = moment();
+
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
     clipPath: "inset(50%)",
@@ -42,9 +44,8 @@ export function RegisProduct({ handleRegisProduct }) {
       serialResult: {},
     },
   ]);
-  const [purchaseDate, setPurchaseDate] = useState(moment());
   const [selectedFile, setSelectedFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+
   const [productCount, setProductCount] = useState(1);
   const handleAddProduct = () => {
     setProductCount(() => productCount + 1);
@@ -71,11 +72,6 @@ export function RegisProduct({ handleRegisProduct }) {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
-
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setImageUrl(imageUrl);
-    }
   };
 
   const handleSerialNumberChange = (newValue, index) => {
@@ -222,9 +218,9 @@ export function RegisProduct({ handleRegisProduct }) {
     });
   };
 
-  const openImageInNewTab = () => {
-    if (selectedFile) {
-      const imageUrl = URL.createObjectURL(selectedFile);
+  const openImageInNewTab = (file) => {
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
       window.open(imageUrl);
     }
   };
@@ -461,7 +457,7 @@ export function RegisProduct({ handleRegisProduct }) {
                       Date of Purchase :
                       <div className="datepicker-overlay">
                         <DatePicker
-                          defaultValue={purchaseDate}
+                          defaultValue={defaultDate}
                           onChange={(e) => handleDateOfPurChaseChange(e, index)}
                           format="DD/MM/YYYY"
                           PopperProps={{
@@ -507,20 +503,23 @@ export function RegisProduct({ handleRegisProduct }) {
               <br />
               <div>
                 <div>Upload Your Receipt/Invoice with PDF or Image file :</div>
-                <div style={{ height: "100px" }}>
-                  <Button
-                    component="label"
-                    variant="contained"
-                    size="small"
-                    startIcon={<CloudUploadIcon />}
-                  >
-                    Upload file
-                    <VisuallyHiddenInput
-                      type="file"
-                      onChange={handleImageUpload}
-                      name="file"
-                    />
-                  </Button>
+                <div style={{ height: "300px" }}>
+                  <div>
+                    <Button
+                      component="label"
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                    >
+                      Upload file
+                      <VisuallyHiddenInput
+                        type="file"
+                        onChange={handleImageUpload}
+                        name="file"
+                      />
+                    </Button>
+                  </div>
+
                   {selectedFile && (
                     <div style={{ display: "flex", alignItems: "center" }}>
                       <div>
@@ -528,18 +527,12 @@ export function RegisProduct({ handleRegisProduct }) {
                           Selected file:
                           <a
                             href="#"
-                            onClick={openImageInNewTab}
+                            onClick={() => openImageInNewTab(selectedFile)}
                             style={{ marginLeft: "5px" }}
                           >
                             {selectedFile.name}
                           </a>
                         </p>
-
-                        {/* <img
-                          src={imageUrl}
-                          alt="Uploaded"
-                          style={{ maxWidth: "100px", maxHeight: "100px" }}
-                        /> */}
                       </div>
                     </div>
                   )}

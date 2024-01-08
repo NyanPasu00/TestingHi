@@ -11,6 +11,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TablePagination,
+  TextField,
 } from "@mui/material";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -26,6 +28,7 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepButton from "@mui/material/StepButton";
 import Typography from "@mui/material/Typography";
+import SearchIcon from "@mui/icons-material/Search";
 import RMAInfo from "./RMAInfo";
 
 const steps = [
@@ -42,8 +45,10 @@ const steps = [
 ];
 
 export function Home() {
-  const { user, logOut, newUser, setProductData , setallRmaInfo} = useContext(AuthContext);
+  const { user, logOut, newUser, setProductData, setallRmaInfo } =
+    useContext(AuthContext);
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [id, setId] = useState(0);
   const [open, setOpen] = useState(false);
   const [orderStatus, setorderStatus] = useState(false);
@@ -51,7 +56,8 @@ export function Home() {
   const [rmaInfo, setRmaInfo] = useState(false);
   const [productTable, setProductTable] = useState([]);
   const [serialNumberTable, setSerialNumber] = useState([]);
-
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   //Stepper
   const [activeStep, setActiveStep] = React.useState(0);
 
@@ -96,15 +102,22 @@ export function Home() {
     }
   };
 
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredData = productTable.filter((rmatable) =>
+    rmatable.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleInfo = (status, information) => {
     setRmaInfo(status === "open" ? true : false);
 
-    if(information)
-    {
+    if (information) {
       setallRmaInfo(information);
     }
   };
-  
+
   const handleRegisProduct = (product) => {
     setorderStatus(
       product === "registed" || product === "cancel" ? false : true
@@ -185,6 +198,7 @@ export function Home() {
             {productTable.length > 0 ? (
               <>
                 <h2>My Product</h2>
+
                 <TableContainer component={Paper}>
                   <Table
                     sx={{ minWidth: 650 }}
@@ -253,129 +267,147 @@ export function Home() {
                         >
                           RMA Status
                         </TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        ></TableCell>
-                        <TableCell
-                          align="center"
-                          style={{ fontWeight: "bold" }}
-                        ></TableCell>
+                        <TableCell colSpan={2}>
+                          <div style={{display:"flex",flexDirection:"row"}}>
+                            
+                            <TextField
+                              type="text"
+                              placeholder="Search by Customer Name..."
+                              value={searchQuery}
+                              onChange={handleSearch}
+                              style={{ width: "100%" }}
+                              size="small"
+                            />
+                          </div>
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {productTable.map((rmatable) => (
-                        <TableRow
-                          key={rmatable.serialNum}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell component="th" scope="row">
-                            {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
-                          </TableCell>
-                          <TableCell align="center">{rmatable.name}</TableCell>
-                          <TableCell align="center">
-                            {rmatable.serialNum}
-                          </TableCell>
-                          <TableCell align="center">
-                            <a
-                              href={`http://localhost:3001/${rmatable.receiptImage}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Receipt
-                            </a>
-                          </TableCell>
-                          <TableCell align="center">
-                            {" "}
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_name || "-"}
-                          </TableCell>
-                          <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.date_manufacture
-                              ? moment(
-                                  serialNumberTable.find(
-                                    (serial) =>
-                                      rmatable.serialNum === serial.serialnumber
-                                  ).date_manufacture
-                                ).format("DD-MM-YYYY")
-                              : "-"}
-                          </TableCell>
-                          <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_status || "-"}
-                          </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rma_id !== null &&
-                            rmatable.rma_id !== undefined
-                              ? `RMA${String(rmatable.rma_id).padStart(4, "0")}`
-                              : "-"}
-                          </TableCell>
-                          <TableCell
-                            align="center"
-                            style={{
-                              maxWidth: "350px",
-                              wordBreak: "break-word",
+                      {filteredData
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage
+                        )
+                        .map((rmatable) => (
+                          <TableRow
+                            key={rmatable.serialNum}
+                            sx={{
+                              "&:last-child td, &:last-child th": { border: 0 },
                             }}
                           >
-                            {rmatable.reason ?? "-"}
-                          </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rmaStatus ?? "-"}
-                          </TableCell>
-                          <TableCell align="center">
-                            {rmatable.rmaStatus ? (
-                              <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => handleInfo("open",rmatable)}
-                                style={{
-                                  width: "30px",
-                                  height: "40px",
-                                  fontSize: "10px",
-                                }}
+                            <TableCell component="th" scope="row">
+                              {moment(rmatable.creatingDate).format(
+                                "DD-MM-YYYY"
+                              )}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.name}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.serialNum}
+                            </TableCell>
+                            <TableCell align="center">
+                              <a
+                                href={`http://localhost:3001/${rmatable.receiptImage}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                               >
-                                RMA Info
-                              </Button>
-                            ) : (
+                                Receipt
+                              </a>
+                            </TableCell>
+                            <TableCell align="center">
+                              {" "}
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.product_name || "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.date_manufacture
+                                ? moment(
+                                    serialNumberTable.find(
+                                      (serial) =>
+                                        rmatable.serialNum ===
+                                        serial.serialnumber
+                                    ).date_manufacture
+                                  ).format("DD-MM-YYYY")
+                                : "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {serialNumberTable.find(
+                                (serial) =>
+                                  rmatable.serialNum === serial.serialnumber
+                              )?.product_status || "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rma_id !== null &&
+                              rmatable.rma_id !== undefined
+                                ? `RMA${String(rmatable.rma_id).padStart(
+                                    4,
+                                    "0"
+                                  )}`
+                                : "-"}
+                            </TableCell>
+                            <TableCell
+                              align="center"
+                              style={{
+                                maxWidth: "350px",
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              {rmatable.reason ?? "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rmaStatus ?? "-"}
+                            </TableCell>
+                            <TableCell align="center">
+                              {rmatable.rmaStatus ? (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  onClick={() => handleInfo("open", rmatable)}
+                                  style={{
+                                    width: "30px",
+                                    height: "40px",
+                                    fontSize: "10px",
+                                  }}
+                                >
+                                  RMA Info
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  onClick={() => {
+                                    handleRMA("shortcut", rmatable);
+                                  }}
+                                  style={{
+                                    width: "30px",
+                                    height: "40px",
+                                    fontSize: "10px",
+                                  }}
+                                >
+                                  Create RMA
+                                </Button>
+                              )}
+                            </TableCell>
+                            <TableCell align="center">
                               <Button
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                  handleRMA("shortcut", rmatable);
+                                  handleOpenConfirm(rmatable.id);
                                 }}
-                                style={{
-                                  width: "30px",
-                                  height: "40px",
-                                  fontSize: "10px",
-                                }}
+                                style={{ width: "30px", height: "40px" }}
                               >
-                                Create RMA
+                                Delete
                               </Button>
-                            )}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => {
-                                handleOpenConfirm(rmatable.id);
-                              }}
-                              style={{ width: "30px", height: "40px" }}
-                            >
-                              Delete
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -457,59 +489,20 @@ export function Home() {
       <div>
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
         {rmaInfo ? <RMAInfo handleInfo={handleInfo} /> : null}
-        {/* <div>
-            {instructionStatus ? (
-              <div
-                style={{ border: "1px solid black", width: 700, padding: 30 }}
-              >
-                <p>
-                  <h3>Approved RMA Details</h3>
-                  <b>Return Instruction</b>
-                  <br />
-                  <br />
-                  1. Packaging : Securely pack the item in its original
-                  packaging <br />
-                  2. RMA Number : Include the RMA number inside the package{" "}
-                  <br />
-                  3. Shipping Address : Ship the package to the following
-                  address <br />
-                  <br />
-                  NO.28 JALAN BPP 3/6 <br /> BANDAR PUTRA PERMAI <br />
-                  43300 SERI KEMBANGAN SELANGOR
-                  <br />
-                  <br />
-                  RMA Number : RMA33365 <br />
-                  Serial Number : SRN003 <br />
-                  Product Number : Monitor <br />
-                  Reason of Return : Damaged <br />
-                </p>
-                <button onClick={() => handleInstruction("close")}>
-                  Back To Home Page
-                </button>
-              </div>
-            ) : null}
-            {rejectStatus ? (
-              <div
-                style={{ border: "1px solid black", width: 700, padding: 30 }}
-              >
-                <p>
-                  <h3>Reject RMA Details</h3>
-                  <b>
-                    Reason for Rejection : Item not meeting return criteria{" "}
-                  </b>
-                  <br />
-                  Alternatives : Please ensure the item meets return conditions
-                  and resubmit the RMA <br />
-                  Contact Support : For assistance, contact us at
-                  eclipse@company.com or 1-800-XXX-XXXX. <br />
-                </p>
-                <button onClick={() => handleReject("close")}>
-                  Back To Home Page
-                </button>
-              </div>
-            ) : null}
-          </div> */}
       </div>
+
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]} // Define rows per page options
+        component="div"
+        count={productTable.length} // Total number of rows
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)} // Handle page change
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0); // Reset to the first page when changing rows per page
+        }}
+      />
     </>
   );
 }

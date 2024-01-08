@@ -32,6 +32,7 @@ export function CreateRMA({ handleRMA }) {
   const [confirmStatus, setconfirmStatus] = useState(false);
   const [editAddress, setEditAddress] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [imageFile2, setImageFile2] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [confirmEditAddress, setConfirmEditAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({
@@ -82,8 +83,7 @@ export function CreateRMA({ handleRMA }) {
         !newAddress.address2 ||
         !newAddress.city ||
         !newAddress.postcode ||
-        !newAddress.country 
-
+        !newAddress.country
       ) {
         alert("Please full in all required Fields");
         return;
@@ -131,6 +131,7 @@ export function CreateRMA({ handleRMA }) {
     formData.append("serialNum", productData.serialNum);
     formData.append("imagefile", imageFile);
     formData.append("videofile", videoFile);
+    formData.append("imagefile2", imageFile2);
 
     axios
       .post("http://localhost:3001/createRMA", formData, {
@@ -149,15 +150,19 @@ export function CreateRMA({ handleRMA }) {
     const image = event.target.files[0];
     setImageFile(image);
   };
+  const handleImageChange2 = (event) => {
+    const image = event.target.files[0];
+    setImageFile2(image);
+  };
 
   const handleVideoChange = (event) => {
     const video = event.target.files[0];
     setVideoFile(video);
   };
 
-  const openImageInNewTab = () => {
-    if (imageFile) {
-      const imageUrl = URL.createObjectURL(imageFile);
+  const openImageInNewTab = (file) => {
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
       window.open(imageUrl);
     }
   };
@@ -368,6 +373,7 @@ export function CreateRMA({ handleRMA }) {
                   />
                 </Button>
               </div>
+
               {imageFile && (
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <div>
@@ -375,10 +381,48 @@ export function CreateRMA({ handleRMA }) {
                       Selected file:
                       <a
                         href="#"
-                        onClick={openImageInNewTab}
+                        onClick={() => openImageInNewTab(imageFile)}
                         style={{ marginLeft: "5px" }}
                       >
                         {imageFile.name}
+                      </a>
+                    </p>
+
+                    {/* <img
+                          src={imageUrl}
+                          alt="Uploaded"
+                          style={{ maxWidth: "100px", maxHeight: "100px" }}
+                        /> */}
+                  </div>
+                </div>
+              )}
+              <div>
+                <label>Upload File With Image 2: </label>
+                <Button
+                  component="label"
+                  variant="contained"
+                  size="small"
+                  startIcon={<CloudUploadIcon />}
+                >
+                  Upload file
+                  <VisuallyHiddenInput
+                    type="file"
+                    onChange={handleImageChange2}
+                    name="imagefile"
+                  />
+                </Button>
+              </div>
+              {imageFile2 && (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <div>
+                    <p>
+                      Selected file:
+                      <a
+                        href="#"
+                        onClick={() => openImageInNewTab(imageFile2)}
+                        style={{ marginLeft: "5px" }}
+                      >
+                        {imageFile2.name}
                       </a>
                     </p>
 
@@ -534,12 +578,25 @@ export function CreateRMA({ handleRMA }) {
                               <div>
                                 <a
                                   href="#"
-                                  onClick={openImageInNewTab}
+                                  onClick={() => openImageInNewTab(imageFile)}
                                   style={{ marginLeft: "5px" }}
                                 >
                                   {imageFile.name}
                                 </a>
                               </div>
+                              {imageFile2 ?
+                                <div>
+                                  <a
+                                    href="#"
+                                    onClick={() =>
+                                      openImageInNewTab(imageFile2)
+                                    }
+                                    style={{ marginLeft: "5px" }}
+                                  >
+                                    {imageFile2.name}
+                                  </a>
+                                </div>
+                              : null}
                               <div>
                                 <a
                                   href="#"

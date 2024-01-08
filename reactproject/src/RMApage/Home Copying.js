@@ -4,6 +4,7 @@ import { CreateRMA } from "./CreateRMA";
 import AuthContext from "../context/AuthProvider";
 import "./style.css";
 import { Avatar } from "@mui/material";
+import axios from "axios";
 export function HomeCopy() {
   const { user, logOut ,newUser} = useContext(AuthContext);
 
@@ -48,11 +49,27 @@ export function HomeCopy() {
     setconfirmStatus(rma === "created" ? true : false);
   };
 
+  const insertSerialNumber = () => {
+    for (let i = 5; i <= 6; i++) {
+      axios
+        .post("http://localhost3001/insert", {
+          index: i
+        })
+        .then(() => {
+          console.log("Sending Success");
+        })
+        .catch((error) => {
+          console.error("Error sending data:", error);
+        });
+    }
+  };
+
   return (
     <div>
       <div>
         <div>
           {newUser ? <h1>Hii New User</h1> : <h1>Welcome Back User</h1>}
+          <button onClick={insertSerialNumber}>Hi</button>
           <h1>
             Welcome to Home Page , {user?.displayName} , {user?.email}
           </h1>
