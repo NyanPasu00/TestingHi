@@ -39,7 +39,6 @@ export function Login() {
           uid: user?.uid,
         })
         .then((response) => {
-          console.log(response.data);
           if(response.data.affectedRows)
           {
             setNewUser(true);

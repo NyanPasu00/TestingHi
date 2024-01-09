@@ -49,18 +49,14 @@ export function HomeCopy() {
     setconfirmStatus(rma === "created" ? true : false);
   };
 
-  const insertSerialNumber = () => {
-    for (let i = 5; i <= 6; i++) {
-      axios
-        .post("http://localhost3001/insert", {
-          index: i
-        })
-        .then(() => {
-          console.log("Sending Success");
-        })
-        .catch((error) => {
-          console.error("Error sending data:", error);
-        });
+  const insertSerialNumber = async () => {
+    try {
+      for (let i = 21; i <= 100; i++) {
+        await axios.post("http://localhost:3001/insert", { index: i });
+        console.log("Sending Success for index:", i);
+      }
+    } catch (error) {
+      console.error("Error sending data:", error);
     }
   };
 

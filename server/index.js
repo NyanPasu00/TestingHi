@@ -270,9 +270,10 @@ app.put("/updateWaybill", (req, res) => {
 //testing
 app.post("/insert",(req,res)=> {
   const index = req.body.index;
+  console.log(index)
   db.query(
     `INSERT client.product
-     SET serialnumber="SRN000${index}"  product_name="Monitor" , date_manufacture=STR_TO_DATE("23-3-2023","%d-%m-%Y") , product_status="Active"`,
+     SET serialnumber="SRN0${index >= 100 ? index : (index > 10 ? "0"+ index : "00" + index)}" , product_name="Monitor" , date_manufacture=STR_TO_DATE("23-3-2023","%d-%m-%Y") , product_status="Active" , kplus =0`,
     (err, result) => {
       if (err) {
         console.log(err);

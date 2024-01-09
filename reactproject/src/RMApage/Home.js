@@ -28,7 +28,6 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepButton from "@mui/material/StepButton";
 import Typography from "@mui/material/Typography";
-import SearchIcon from "@mui/icons-material/Search";
 import RMAInfo from "./RMAInfo";
 
 const steps = [
@@ -105,10 +104,21 @@ export function Home() {
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
   };
+  const filteredData = productTable.filter((rmatable) => {
+    const searchQueryLowerCase = searchQuery.toLowerCase();
 
-  const filteredData = productTable.filter((rmatable) =>
-    rmatable.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    const nameMatch =
+      rmatable.name &&
+      rmatable.name.toLowerCase().includes(searchQueryLowerCase);
+    const statusMatch =
+      rmatable.rmaStatus &&
+      rmatable.rmaStatus.toLowerCase().includes(searchQueryLowerCase);
+    const serialNumMatch =
+      rmatable.serialNum &&
+      rmatable.serialNum.toLowerCase().includes(searchQueryLowerCase);
+
+    return nameMatch || statusMatch || serialNumMatch;
+  });
 
   const handleInfo = (status, information) => {
     setRmaInfo(status === "open" ? true : false);
@@ -139,7 +149,6 @@ export function Home() {
       .get("http://localhost:3001/getregisProduct?uid=" + (user?.uid || ""))
       .then((response) => {
         setProductTable(response.data);
-        console.log(productTable);
       })
       .catch((error) => {
         console.error("Error Getting data:", error);
@@ -268,11 +277,12 @@ export function Home() {
                           RMA Status
                         </TableCell>
                         <TableCell colSpan={2}>
-                          <div style={{display:"flex",flexDirection:"row"}}>
-                            
+                          <div
+                            style={{ display: "flex", flexDirection: "row" }}
+                          >
                             <TextField
                               type="text"
-                              placeholder="Search by Customer Name..."
+                              placeholder="Search Here"
                               value={searchQuery}
                               onChange={handleSearch}
                               style={{ width: "100%" }}
@@ -288,9 +298,9 @@ export function Home() {
                           page * rowsPerPage,
                           page * rowsPerPage + rowsPerPage
                         )
-                        .map((rmatable) => (
+                        .map((rmatable,index) => (
                           <TableRow
-                            key={rmatable.serialNum}
+                            key={index}
                             sx={{
                               "&:last-child td, &:last-child th": { border: 0 },
                             }}
@@ -452,7 +462,6 @@ export function Home() {
                       >
                         Next
                       </Button>
-                      {console.log(activeStep)}
                       {activeStep === 1 ? (
                         <Button
                           variant="contained"
@@ -488,7 +497,12 @@ export function Home() {
       </Dialog>
       <div>
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
-        {rmaInfo ? <RMAInfo handleInfo={handleInfo} /> : null}
+        {rmaInfo ? (
+          <RMAInfo
+            serialNumberTable={serialNumberTable}
+            handleInfo={handleInfo}
+          />
+        ) : null}
       </div>
 
       <TablePagination
@@ -501,8 +515,9 @@ export function Home() {
         onRowsPerPageChange={(event) => {
           setRowsPerPage(parseInt(event.target.value, 10));
           setPage(0); // Reset to the first page when changing rows per page
+          
         }}
-      />
+        />
     </>
   );
 }

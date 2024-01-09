@@ -3,14 +3,13 @@ import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthProvider";
 import axios from "axios";
 
-export default function RMAInfo({ handleInfo }) {
+export default function RMAInfo({ handleInfo, serialNumberTable }) {
   const { allRmaInfo, infoSectionStyle, contentStyle, labelStyle } =
     useContext(AuthContext);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [waybill, setWaybill] = useState("");
   const [courier, setCourier] = useState("");
-
   const handleCopy = () => {
     const addressText = `39-3, Jalan SP 2/2, Taman Serdang Perdana, 43300 Seri Kembangan, Selangor, Malaysia`;
     navigator.clipboard
@@ -21,14 +20,12 @@ export default function RMAInfo({ handleInfo }) {
 
   const handleWaybill = () => {
     axios
-      .put("http://localhost:3001/updateWaybill" , {
-        waybill : waybill,
-        courier : courier,
-        serialNum : allRmaInfo.serialNum
+      .put("http://localhost:3001/updateWaybill", {
+        waybill: waybill,
+        courier: courier,
+        serialNum: allRmaInfo.serialNum,
       })
-      .then((response) => {
-      
-      })
+      .then((response) => {})
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
@@ -88,6 +85,24 @@ export default function RMAInfo({ handleInfo }) {
               <div style={contentStyle}>
                 <label style={labelStyle}>Serial Number :</label>
                 <div>{allRmaInfo.serialNum}</div>
+              </div>
+              <div>
+                {serialNumberTable.map((serial) => {
+                  if (serial.serialnumber === allRmaInfo.serialNum) {
+                    return (
+                      <div key={serial.serialnumber}>
+                        <div style={contentStyle}>
+                          <label style={labelStyle}>Product Name :</label>
+                          <div>{serial.product_name}</div>
+                        </div>
+                        <div style={contentStyle}>
+                          <label style={labelStyle}>K Plus :</label>
+                          <div>{serial.kplus ? "Yes" : "No"}</div>
+                        </div>
+                      </div>
+                    );
+                  }
+                })}
               </div>
               <div style={contentStyle}>
                 <label style={labelStyle}>RMA ID:</label>
@@ -222,7 +237,11 @@ export default function RMAInfo({ handleInfo }) {
                   <MenuItem value="Shopee Express">Shopee Express</MenuItem> */}
                 </TextField>
               </div>
-              <Button variant="contained" style={{ width: "20px" }} onClick={handleWaybill}>
+              <Button
+                variant="contained"
+                style={{ width: "20px" }}
+                onClick={handleWaybill}
+              >
                 Submit
               </Button>
             </div>

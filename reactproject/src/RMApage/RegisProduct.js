@@ -503,7 +503,7 @@ export function RegisProduct({ handleRegisProduct }) {
               <br />
               <div>
                 <div>Upload Your Receipt/Invoice with PDF or Image file :</div>
-                <div style={{ height: "300px" }}>
+                <div style={{ height: "100px" }}>
                   <div>
                     <Button
                       component="label"
