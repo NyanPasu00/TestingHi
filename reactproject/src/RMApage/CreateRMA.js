@@ -358,12 +358,16 @@ export function CreateRMA({ handleRMA }) {
                 </label>
               </div>
               <div>
+                <b>*Much Have 1 Photo and 1 Video*</b>
+              </div>
+              <div>
                 <label>Upload File With Image : </label>
                 <Button
                   component="label"
                   variant="contained"
                   size="small"
                   startIcon={<CloudUploadIcon />}
+                  style={{marginLeft: "10px" }}
                 >
                   Upload file
                   <VisuallyHiddenInput
@@ -396,22 +400,25 @@ export function CreateRMA({ handleRMA }) {
                   </div>
                 </div>
               )}
-              <div>
-                <label>Upload File With Image 2: </label>
-                <Button
-                  component="label"
-                  variant="contained"
-                  size="small"
-                  startIcon={<CloudUploadIcon />}
-                >
-                  Upload file
-                  <VisuallyHiddenInput
-                    type="file"
-                    onChange={handleImageChange2}
-                    name="imagefile"
-                  />
-                </Button>
-              </div>
+              {imageFile ?
+                <div>
+                  <label>If You Need To Upload <br/> Second Image (Not Required) : </label>
+                  <Button
+                    component="label"
+                    variant="contained"
+                    size="small"
+                    startIcon={<CloudUploadIcon />}
+                    style={{marginLeft: "10px" , height:"32px" }}
+                  >
+                    Upload file
+                    <VisuallyHiddenInput
+                      type="file"
+                      onChange={handleImageChange2}
+                      name="imagefile"
+                    />
+                  </Button>
+                </div>
+              : null}
               {imageFile2 && (
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <div>
@@ -434,6 +441,7 @@ export function CreateRMA({ handleRMA }) {
                   </div>
                 </div>
               )}
+
               <div>
                 <label>Upload File With Video : </label>
                 <Button
@@ -441,6 +449,7 @@ export function CreateRMA({ handleRMA }) {
                   variant="contained"
                   size="small"
                   startIcon={<CloudUploadIcon />}
+                  style={{marginLeft: "10px" }}
                 >
                   Upload file
                   <VisuallyHiddenInput
@@ -507,11 +516,11 @@ export function CreateRMA({ handleRMA }) {
                       margin: "auto",
                     }}
                   >
-                    <h2>Your Info</h2>
+                    <h2>Check Your Information</h2>
                     <div style={containerStyle}>
                       <div>
                         <div>
-                          <b>Customer Information</b>
+                          <b>Contact Information</b>
                         </div>
                         <br />
                         <div style={infoSectionStyle}>
@@ -584,7 +593,7 @@ export function CreateRMA({ handleRMA }) {
                                   {imageFile.name}
                                 </a>
                               </div>
-                              {imageFile2 ?
+                              {imageFile2 ? (
                                 <div>
                                   <a
                                     href="#"
@@ -596,7 +605,7 @@ export function CreateRMA({ handleRMA }) {
                                     {imageFile2.name}
                                   </a>
                                 </div>
-                              : null}
+                              ) : null}
                               <div>
                                 <a
                                   href="#"
@@ -652,7 +661,7 @@ export function CreateRMA({ handleRMA }) {
         </div>
       </div>
       <Dialog open={confirmEditAddress} onClose={handleEditAddress}>
-        <DialogTitle>Confirm Edit Address</DialogTitle>
+        <DialogTitle>Confirm Want To Edit Address</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to change your address?

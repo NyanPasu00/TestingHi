@@ -56,7 +56,7 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
               fontFamily: "Arial, sans-serif",
             }}
           >
-            <h2>All Your Info</h2>
+            <h2>RMA Info</h2>
             <div style={infoSectionStyle}>
               <div style={contentStyle}>
                 <label style={labelStyle}>Name :</label>
@@ -173,7 +173,8 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
                 padding: "15px",
               }}
             >
-              <h2>Confirmation of RMA Approval</h2>
+              <h2>RMA Status</h2>
+              <h3>Confirmation of RMA Approval</h3>
               <div>
                 Your RMA are Approved , and Please follow Our Instruction.
               </div>
@@ -231,10 +232,7 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
                   onChange={(e) => setCourier(e.target.value)}
                   required
                 >
-                  {/* <MenuItem value="DHL Express">DHL Express</MenuItem>
-                  <MenuItem value="J & T Express">J & T Express</MenuItem>
-                  <MenuItem value="Ninjavan">Ninjavan</MenuItem>
-                  <MenuItem value="Shopee Express">Shopee Express</MenuItem> */}
+                 
                 </TextField>
               </div>
               <Button
@@ -260,7 +258,8 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
               }}
             >
               <div>
-                <h2>Confirmation of RMA Rejection</h2>
+              <h2>RMA Status</h2>
+                <h3>Confirmation of RMA Rejection</h3>
               </div>
               <div>
                 <b>Reason for Rejection : Item not meeting return criteria</b>
@@ -283,7 +282,8 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
                 padding: "15px",
               }}
             >
-              <h2>Your RMA Confirmation Still In Pending</h2>
+               <h2>RMA Status</h2>
+              <h3>Your RMA Confirmation Still In Pending <br/> Please wait patiently. You will be notified <br/> when there is new situation.</h3>
             </div>
           )}
         </div>

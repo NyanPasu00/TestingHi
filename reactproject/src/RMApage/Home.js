@@ -54,6 +54,7 @@ export function Home() {
   const [rmaStatus, setrmaStatus] = useState(false);
   const [rmaInfo, setRmaInfo] = useState(false);
   const [productTable, setProductTable] = useState([]);
+  const [totalproduct, setTotalProduct] = useState([]);
   const [serialNumberTable, setSerialNumber] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -104,21 +105,29 @@ export function Home() {
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
   };
-  const filteredData = productTable.filter((rmatable) => {
-    const searchQueryLowerCase = searchQuery.toLowerCase();
+  let paginatedData = productTable;
 
-    const nameMatch =
-      rmatable.name &&
-      rmatable.name.toLowerCase().includes(searchQueryLowerCase);
-    const statusMatch =
-      rmatable.rmaStatus &&
-      rmatable.rmaStatus.toLowerCase().includes(searchQueryLowerCase);
-    const serialNumMatch =
-      rmatable.serialNum &&
-      rmatable.serialNum.toLowerCase().includes(searchQueryLowerCase);
+  if (searchQuery) {
+    const filteredData = totalproduct.filter((rmatable) => {
+      const searchQueryLowerCase = searchQuery.toLowerCase();
 
-    return nameMatch || statusMatch || serialNumMatch;
-  });
+      const nameMatch =
+        rmatable.name &&
+        rmatable.name.toLowerCase().includes(searchQueryLowerCase);
+      const statusMatch =
+        rmatable.rmaStatus &&
+        rmatable.rmaStatus.toLowerCase().includes(searchQueryLowerCase);
+      const serialNumMatch =
+        rmatable.serialNum &&
+        rmatable.serialNum.toLowerCase().includes(searchQueryLowerCase);
+
+      return nameMatch || statusMatch || serialNumMatch;
+    });
+
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    paginatedData = filteredData.slice(startIndex, endIndex);
+  }
 
   const handleInfo = (status, information) => {
     setRmaInfo(status === "open" ? true : false);
@@ -146,14 +155,21 @@ export function Home() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/getregisProduct?uid=" + (user?.uid || ""))
+      .get(
+        "http://localhost:3001/getregisProduct?uid=" +
+          (user?.uid || "") +
+          "&rowsPerPage=" +
+          rowsPerPage +
+          "&page=" +
+          page
+      )
       .then((response) => {
         setProductTable(response.data);
       })
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, orderStatus, rmaStatus, open]);
+  }, [user, orderStatus, rmaStatus, open, rowsPerPage, page]);
 
   useEffect(() => {
     axios
@@ -166,18 +182,48 @@ export function Home() {
       });
     document.title = "RMA";
   }, []);
+
+  useEffect(() => {
+    axios
+      .get(
+        "http://localhost:3001/getTotalRegisProduct?uid=" + (user?.uid || "")
+      )
+      .then((response) => {
+        setTotalProduct(response.data);
+      })
+      .catch((error) => {
+        console.error("Error Getting data:", error);
+      });
+  }, [user, orderStatus, rmaStatus, open]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setPage(0);
+    }
+  }, [searchQuery, setPage]);
   return (
     <>
       <div className="container">
         <main className="main-content">
-          {newUser ? (
-            <h3>Hii New User , {user?.displayName}</h3>
-          ) : (
-            <h3>Welcome Back {user?.displayName} !</h3>
-          )}
           <div className="user-content">
-            <div className="avatar-name-container">
-              <p>{user?.email}</p>
+            <div>
+              {newUser ? (
+                <h2>Hii New User , {user?.displayName}</h2>
+              ) : (
+                <h2>Welcome Back {user?.displayName} !</h2>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "row"}}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "45px",
+                  marginRight: "10px",
+                }}
+              >
+                {user?.email}
+              </div>
               <Avatar alt={user?.displayName} src={user?.photoURL} />
               <Button
                 variant="contained"
@@ -190,8 +236,7 @@ export function Home() {
             </div>
           </div>
           <div>
-            <div className="function">
-              <div className="button">
+            <div className="function"> 
                 <Button
                   variant="contained"
                   size="small"
@@ -202,7 +247,6 @@ export function Home() {
                 {orderStatus ? (
                   <RegisProduct handleRegisProduct={handleRegisProduct} />
                 ) : null}
-              </div>
             </div>
             {productTable.length > 0 ? (
               <>
@@ -293,137 +337,136 @@ export function Home() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {filteredData
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((rmatable,index) => (
-                          <TableRow
-                            key={index}
-                            sx={{
-                              "&:last-child td, &:last-child th": { border: 0 },
+                      {paginatedData.map((rmatable, index) => (
+                        <TableRow
+                          key={index}
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
+                          </TableCell>
+                          <TableCell align="center">{rmatable.name}</TableCell>
+                          <TableCell align="center">
+                            {rmatable.serialNum}
+                          </TableCell>
+                          <TableCell align="center">
+                            <a
+                              href={`http://localhost:3001/${rmatable.receiptImage}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Receipt
+                            </a>
+                          </TableCell>
+                          <TableCell align="center">
+                            {" "}
+                            {serialNumberTable.find(
+                              (serial) =>
+                                rmatable.serialNum === serial.serialnumber
+                            )?.product_name || "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {serialNumberTable.find(
+                              (serial) =>
+                                rmatable.serialNum === serial.serialnumber
+                            )?.date_manufacture
+                              ? moment(
+                                  serialNumberTable.find(
+                                    (serial) =>
+                                      rmatable.serialNum === serial.serialnumber
+                                  ).date_manufacture
+                                ).format("DD-MM-YYYY")
+                              : "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {serialNumberTable.find(
+                              (serial) =>
+                                rmatable.serialNum === serial.serialnumber
+                            )?.product_status || "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {rmatable.rma_id !== null &&
+                            rmatable.rma_id !== undefined
+                              ? `RMA${String(rmatable.rma_id).padStart(4, "0")}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell
+                            align="center"
+                            style={{
+                              maxWidth: "350px",
+                              wordBreak: "break-word",
                             }}
                           >
-                            <TableCell component="th" scope="row">
-                              {moment(rmatable.creatingDate).format(
-                                "DD-MM-YYYY"
-                              )}
-                            </TableCell>
-                            <TableCell align="center">
-                              {rmatable.name}
-                            </TableCell>
-                            <TableCell align="center">
-                              {rmatable.serialNum}
-                            </TableCell>
-                            <TableCell align="center">
-                              <a
-                                href={`http://localhost:3001/${rmatable.receiptImage}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            {rmatable.reason ?? "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {rmatable.rmaStatus ?? "-"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {rmatable.rmaStatus ? (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => handleInfo("open", rmatable)}
+                                style={{
+                                  width: "30px",
+                                  height: "40px",
+                                  fontSize: "10px",
+                                }}
                               >
-                                Receipt
-                              </a>
-                            </TableCell>
-                            <TableCell align="center">
-                              {" "}
-                              {serialNumberTable.find(
-                                (serial) =>
-                                  rmatable.serialNum === serial.serialnumber
-                              )?.product_name || "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {serialNumberTable.find(
-                                (serial) =>
-                                  rmatable.serialNum === serial.serialnumber
-                              )?.date_manufacture
-                                ? moment(
-                                    serialNumberTable.find(
-                                      (serial) =>
-                                        rmatable.serialNum ===
-                                        serial.serialnumber
-                                    ).date_manufacture
-                                  ).format("DD-MM-YYYY")
-                                : "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {serialNumberTable.find(
-                                (serial) =>
-                                  rmatable.serialNum === serial.serialnumber
-                              )?.product_status || "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {rmatable.rma_id !== null &&
-                              rmatable.rma_id !== undefined
-                                ? `RMA${String(rmatable.rma_id).padStart(
-                                    4,
-                                    "0"
-                                  )}`
-                                : "-"}
-                            </TableCell>
-                            <TableCell
-                              align="center"
-                              style={{
-                                maxWidth: "350px",
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              {rmatable.reason ?? "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {rmatable.rmaStatus ?? "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {rmatable.rmaStatus ? (
-                                <Button
-                                  size="small"
-                                  variant="contained"
-                                  onClick={() => handleInfo("open", rmatable)}
-                                  style={{
-                                    width: "30px",
-                                    height: "40px",
-                                    fontSize: "10px",
-                                  }}
-                                >
-                                  RMA Info
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="small"
-                                  variant="contained"
-                                  onClick={() => {
-                                    handleRMA("shortcut", rmatable);
-                                  }}
-                                  style={{
-                                    width: "30px",
-                                    height: "40px",
-                                    fontSize: "10px",
-                                  }}
-                                >
-                                  Create RMA
-                                </Button>
-                              )}
-                            </TableCell>
-                            <TableCell align="center">
+                                RMA Info
+                              </Button>
+                            ) : (
                               <Button
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                  handleOpenConfirm(rmatable.id);
+                                  handleRMA("shortcut", rmatable);
                                 }}
-                                style={{ width: "30px", height: "40px" }}
+                                style={{
+                                  width: "30px",
+                                  height: "40px",
+                                  fontSize: "10px",
+                                }}
                               >
-                                Delete
+                                Create RMA
                               </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                            )}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => {
+                                handleOpenConfirm(rmatable.id);
+                              }}
+                              style={{ width: "30px", height: "40px" }}
+                            >
+                              Delete
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]} // Define rows per page options
+                  component="div"
+                  count={totalproduct.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={(event, newPage) => setPage(newPage)} // Handle page change
+                  onRowsPerPageChange={(event) => {
+                    setRowsPerPage(parseInt(event.target.value, 10));
+                    setPage(0); // Reset to the first page when changing rows per page
+                  }}
+                />
               </>
             ) : (
-              <Box sx={{ width: "50%", margin: "auto" }}>
+              <Box sx={{ width: "50%", margin: "auto" , paddingTop:"100px" }}>
                 <Stepper
                   nonLinear
                   activeStep={activeStep}
@@ -504,20 +547,6 @@ export function Home() {
           />
         ) : null}
       </div>
-
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]} // Define rows per page options
-        component="div"
-        count={productTable.length} // Total number of rows
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={(event, newPage) => setPage(newPage)} // Handle page change
-        onRowsPerPageChange={(event) => {
-          setRowsPerPage(parseInt(event.target.value, 10));
-          setPage(0); // Reset to the first page when changing rows per page
-          
-        }}
-        />
     </>
   );
 }

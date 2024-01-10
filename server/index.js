@@ -174,12 +174,17 @@ app.post(
 
 app.get("/getregisProduct", (req, res) => {
   const uid = req.query.uid;
+  const rowsPerPage = req.query.rowsPerPage;
+  const page = req.query.page;
+  
   const query = `
   SELECT * , R.serialNum
   FROM client.registerproduct R
   LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
-  WHERE uid = "${uid}" AND display = true;
-  `;
+  WHERE uid = "${uid}" AND display = true
+  ORDER BY R.serialNum
+  LIMIT ${rowsPerPage} OFFSET ${(page * rowsPerPage)};
+  `;  
   // R.id , R.name , R.serialNum , R.creatingDate , E.rma_id , E.reason
   // , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
   db.query(query, (err, result) => {
@@ -187,12 +192,28 @@ app.get("/getregisProduct", (req, res) => {
       console.log(err);
       res.status(500).send("Database query error");
     } else {
-      // console.log(result);
       res.status(200).json(result);
     }
   });
 });
 
+app.get("/getTotalRegisProduct", (req,res) => {
+  const uid = req.query.uid;
+  
+  const query = `SELECT *, R.serialNum
+  FROM client.registerproduct R
+  LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
+  WHERE R.uid = "${uid}" AND R.display = true;`
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Database query error");
+    } else {
+      res.status(200).json(result);
+    }
+  });
+})
 app.get("/serialnumber", (req, res) => {
   const query = `SELECT * FROM client.product`;
   db.query(query, (err, result) => {
@@ -267,51 +288,7 @@ app.put("/updateWaybill", (req, res) => {
     }
   });
 });
-//testing
-app.post("/insert",(req,res)=> {
-  const index = req.body.index;
-  console.log(index)
-  db.query(
-    `INSERT client.product
-     SET serialnumber="SRN0${index >= 100 ? index : (index > 10 ? "0"+ index : "00" + index)}" , product_name="Monitor" , date_manufacture=STR_TO_DATE("23-3-2023","%d-%m-%Y") , product_status="Active" , kplus =0`,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-})
-app.put("/update", (req, res) => {
-  const id = req.body.id;
-  const age = req.body.age;
-  db.query(
-    `UPDATE testing.testing SET age =${age} WHERE id =${id}`,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.delete("/delete/:id", (req, res) => {
-  const id = req.params.id;
-  db.query(`DELETE FROM testing.testing WHERE id=${id}`, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
 
 app.listen(3001, () => {
   console.log("Running In Port 3001");
 });
-
-
-
