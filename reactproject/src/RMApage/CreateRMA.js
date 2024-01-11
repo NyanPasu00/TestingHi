@@ -12,21 +12,8 @@ import AuthContext from "../context/AuthProvider";
 import "./style.css";
 import axios from "axios";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import styled from "@emotion/styled";
 export function CreateRMA({ handleRMA }) {
-  const VisuallyHiddenInput = styled("input")({
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  });
-
-  const { productData } = useContext(AuthContext);
+  const { productData, VisuallyHiddenInput , labelStyle} = useContext(AuthContext);
 
   const [isChecked, setIsChecked] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
@@ -44,19 +31,6 @@ export function CreateRMA({ handleRMA }) {
   });
   const [reasonReturn, setReasonReturn] = useState("");
   const reasonTextFieldRef = useRef(null);
-  const [serialNumberTable, setSerialNumber] = useState([]);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/serialnumber")
-      .then((response) => {
-        setSerialNumber(response.data);
-      })
-      .catch((error) => {
-        console.error("Error Getting data:", error);
-      });
-    document.title = "RMA";
-  }, []);
 
   const handleNewAddress = (e) => {
     const { id, value } = e.target;
@@ -90,7 +64,7 @@ export function CreateRMA({ handleRMA }) {
       }
     }
 
-    if (!productData.serialNum || !reasonReturn || !imageFile || !videoFile) {
+    if (!reasonReturn || !imageFile) {
       alert("Please full in all required Fields");
       return;
     } else {
@@ -182,53 +156,20 @@ export function CreateRMA({ handleRMA }) {
     }
   }, []);
 
-  const containerStyle = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    fontFamily: "Arial, sans-serif",
-    border: "1px solid black",
-    width: 640,
-    padding: 30,
-  };
-
-  const infoSectionStyle = {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    marginBottom: 10,
-  };
-
-  const labelStyle = {
-    marginRight: 10,
-    fontWeight: "bold",
-    minWidth: "150px",
-  };
-
-  const contentStyle = {
-    display: "flex",
-    alignItems: "center",
-    marginBottom: "5px",
-  };
   return (
     <>
       <div className="overlay">
         <div className="overlay-content">
           <div className="insertRMA">
             <div className="rmaInformation">
-              <h2>Product Information</h2>
-              <label>
-                <b>Product You Choose To Return :</b>
-              </label>
-              <div>Serial Number : {productData.serialNum}</div>
               <div>
-                Product Name :{" "}
-                {serialNumberTable.find(
-                  (serial) => productData.serialNum === serial.serialnumber
-                )?.product_name || "-"}{" "}
+                <h2>Product Information</h2>
               </div>
-              <br />
+              <div>
+                <b>Selected Product for Return:</b>
+              </div>
+              <div>Serial Number : {productData.serialNum}</div>
+              <div>Product Name :{productData.productname}</div>
               <div>Reason Of Return :</div>
               <div>
                 <TextField
@@ -353,23 +294,18 @@ export function CreateRMA({ handleRMA }) {
               <div></div>
               <div>
                 <label htmlFor="fileUpload">
-                  Please 'Choose File' to Show the item's condition for
-                  evaluation.
+                  Upload images to show the item's condition for evaluation
                 </label>
               </div>
               <div>
-                <b>*Much Have 1 Photo and 1 Video*</b>
-              </div>
-              <div>
-                <label>Upload File With Image : </label>
                 <Button
                   component="label"
                   variant="contained"
                   size="small"
                   startIcon={<CloudUploadIcon />}
-                  style={{marginLeft: "10px" }}
+                  style={{ marginLeft: "10px" }}
                 >
-                  Upload file
+                  Select Image file
                   <VisuallyHiddenInput
                     type="file"
                     onChange={handleImageChange}
@@ -391,26 +327,22 @@ export function CreateRMA({ handleRMA }) {
                         {imageFile.name}
                       </a>
                     </p>
-
-                    {/* <img
-                          src={imageUrl}
-                          alt="Uploaded"
-                          style={{ maxWidth: "100px", maxHeight: "100px" }}
-                        /> */}
                   </div>
                 </div>
               )}
-              {imageFile ?
+              {imageFile ? (
                 <div>
-                  <label>If You Need To Upload <br/> Second Image (Not Required) : </label>
+                  <label>
+                    If You Need To Upload <br /> Second Image (Not Required) :{" "}
+                  </label>
                   <Button
                     component="label"
                     variant="contained"
                     size="small"
                     startIcon={<CloudUploadIcon />}
-                    style={{marginLeft: "10px" , height:"32px" }}
+                    style={{ marginLeft: "10px", height: "32px" }}
                   >
-                    Upload file
+                    Select Image file
                     <VisuallyHiddenInput
                       type="file"
                       onChange={handleImageChange2}
@@ -418,7 +350,7 @@ export function CreateRMA({ handleRMA }) {
                     />
                   </Button>
                 </div>
-              : null}
+              ) : null}
               {imageFile2 && (
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <div>
@@ -432,26 +364,19 @@ export function CreateRMA({ handleRMA }) {
                         {imageFile2.name}
                       </a>
                     </p>
-
-                    {/* <img
-                          src={imageUrl}
-                          alt="Uploaded"
-                          style={{ maxWidth: "100px", maxHeight: "100px" }}
-                        /> */}
                   </div>
                 </div>
               )}
 
               <div>
-                <label>Upload File With Video : </label>
                 <Button
                   component="label"
                   variant="contained"
                   size="small"
                   startIcon={<CloudUploadIcon />}
-                  style={{marginLeft: "10px" }}
+                  style={{ marginLeft: "10px" }}
                 >
-                  Upload file
+                  Select Video file
                   <VisuallyHiddenInput
                     type="file"
                     onChange={handleVideoChange}
@@ -472,34 +397,28 @@ export function CreateRMA({ handleRMA }) {
                         {videoFile.name}
                       </a>
                     </p>
-
-                    {/* <img
-                          src={imageUrl}
-                          alt="Uploaded"
-                          style={{ maxWidth: "100px", maxHeight: "100px" }}
-                        /> */}
                   </div>
                 </div>
               )}
-            </div>
-            <div>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  handleconfirmStatus("created");
-                }}
-              >
-                Submit
-              </Button>
+              <div>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    handleconfirmStatus("created");
+                  }}
+                >
+                  Submit
+                </Button>
 
-              <Button
-                variant="contained"
-                onClick={() => {
-                  handleRMA("cancel");
-                }}
-              >
-                Cancel
-              </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    handleRMA("cancel");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
             {confirmStatus ? (
               <div className="overlay2">
@@ -517,109 +436,136 @@ export function CreateRMA({ handleRMA }) {
                     }}
                   >
                     <h2>Check Your Information</h2>
-                    <div style={containerStyle}>
-                      <div>
-                        <div>
-                          <b>Contact Information</b>
-                        </div>
-                        <br />
-                        <div style={infoSectionStyle}>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Customer Name :</label>
-                            <div>{productData.name}</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Phone :</label>
-                            <div>{productData.phone}</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Email :</label>
-                            <div>{productData.email}</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Shipping Address :</label>
-                            {editAddress ? (
-                              <div style={{ paddingTop: "10px" }}>
-                                <div>{newAddress.address}</div>
-                                <div>{newAddress.address2}</div>
-                                <div>
-                                  {newAddress.postcode},{newAddress.city},
-                                  {newAddress.country}
-                                </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <div style={{ paddingTop: "10px" }}>
-                                  <div>{productData.address}</div>
-                                  <div>{productData.address2}</div>
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-start",
+                          justifyContent: "center",
+                          border: "1px solid black",
+                          width: 640,
+                          padding: 30,
+                        }}
+                      >
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td colSpan="3">
+                                <b>Contact Information</b>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Customer Name:</td>
+                              <td>:</td>
+                              <td>{productData.name}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Phone:</td>
+                              <td>:</td>
+                              <td>{productData.phone}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Email:</td>
+                              <td>:</td>
+                              <td>{productData.email}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Shipping Address:</td>
+                              <td>:</td>
+                              <td>
+                                {editAddress ? (
                                   <div>
-                                    {productData.postcode},{productData.city},
+                                    {newAddress.address}
+                                    <br />
+                                    {newAddress.address2}
+                                    <br />
+                                    {newAddress.postcode}, {newAddress.city},{" "}
+                                    {newAddress.country}
+                                  </div>
+                                ) : (
+                                  <div>
+                                    {productData.address}
+                                    <br />
+                                    {productData.address2}
+                                    <br />
+                                    {productData.postcode}, {productData.city},{" "}
                                     {productData.country}
                                   </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                                )}
+                              </td>
+                            </tr>
 
-                        <div>
-                          <b>Product Information</b>
-                        </div>
-                        <br />
-                        <div style={infoSectionStyle}>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Serial Number :</label>
-                            <div>{productData.serialNum}</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Product Name :</label>
-                            <div>Keyboard</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>Reason of Return :</label>
-                            <div>{reasonReturn}</div>
-                          </div>
-                          <div style={contentStyle}>
-                            <label style={labelStyle}>
-                              Supporting Information :
-                            </label>
-                            <div>
-                              <div>
-                                <a
-                                  href="#"
-                                  onClick={() => openImageInNewTab(imageFile)}
-                                  style={{ marginLeft: "5px" }}
-                                >
-                                  {imageFile.name}
-                                </a>
-                              </div>
-                              {imageFile2 ? (
+                            <tr>
+                              <td colSpan="3">
+                                <b>Product Information</b>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Serial Number:</td>
+                              <td>:</td>
+                              <td>{productData.serialNum}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Product Name:</td>
+                              <td>:</td>
+                              <td>{productData.productname}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>Reason of Return:</td>
+                              <td>:</td>
+                              <td>{reasonReturn}</td>
+                            </tr>
+                            <tr>
+                              <td style={labelStyle}>
+                                Supporting Information:
+                              </td>
+                              <td>:</td>
+                              <td>
                                 <div>
-                                  <a
-                                    href="#"
-                                    onClick={() =>
-                                      openImageInNewTab(imageFile2)
-                                    }
-                                    style={{ marginLeft: "5px" }}
-                                  >
-                                    {imageFile2.name}
-                                  </a>
+                                  <div>
+                                    <a
+                                      href="#"
+                                      onClick={() =>
+                                        openImageInNewTab(imageFile)
+                                      }
+                                      style={{ marginLeft: "5px" }}
+                                    >
+                                      {imageFile.name}
+                                    </a>
+                                  </div>
+                                  {imageFile2 ? (
+                                    <div>
+                                      <a
+                                        href="#"
+                                        onClick={() =>
+                                          openImageInNewTab(imageFile2)
+                                        }
+                                        style={{ marginLeft: "5px" }}
+                                      >
+                                        {imageFile2.name}
+                                      </a>
+                                    </div>
+                                  ) : null}
+                                  {videoFile ? (
+                                    <div>
+                                      <a
+                                        href="#"
+                                        onClick={openVideoInNewTab}
+                                        style={{ marginLeft: "5px" }}
+                                      >
+                                        {videoFile.name}
+                                      </a>
+                                    </div>
+                                  ) : null}
                                 </div>
-                              ) : null}
-                              <div>
-                                <a
-                                  href="#"
-                                  onClick={openVideoInNewTab}
-                                  style={{ marginLeft: "5px" }}
-                                >
-                                  {videoFile.name}
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
+
                     <input
                       type="checkbox"
                       id="agreeTerms"
@@ -629,10 +575,11 @@ export function CreateRMA({ handleRMA }) {
                       style={{ margin: "10px 0" }}
                     />
                     <label htmlFor="agreeTerms" style={{ fontSize: 14 }}>
-                      Make sure the above information is correct. Once
-                      confirmed, it cannot be changed.
+                      Kindly ensure the accuracy of the information above. Once
+                      confirmed, modifications cannot be made.
                     </label>
                     <br />
+
                     <div style={{ marginTop: 10 }}>
                       <Button
                         variant="contained"

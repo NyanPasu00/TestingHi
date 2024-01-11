@@ -8,5 +8,6 @@ export function NotFound() {
       navigate("/");
     }, 2000);
   }, []);
+  
   return <h1>Page Not Found</h1>;
 }

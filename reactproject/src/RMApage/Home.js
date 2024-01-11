@@ -1,8 +1,13 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useLayoutEffect } from "react";
+import axios from "axios";
+import moment from "moment";
 import { RegisProduct } from "./RegisProduct";
 import { CreateRMA } from "./CreateRMA";
 import AuthContext from "../context/AuthProvider";
+import RMAInfo from "./RMAInfo";
 import "./style.css";
+
+//Material UI
 import {
   Avatar,
   Button,
@@ -13,64 +18,79 @@ import {
   DialogTitle,
   TablePagination,
   TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Box,
+  Stepper,
+  Step,
+  StepButton,
+  Typography,
 } from "@mui/material";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import axios from "axios";
-import moment from "moment";
-import Box from "@mui/material/Box";
-import Stepper from "@mui/material/Stepper";
-import Step from "@mui/material/Step";
-import StepButton from "@mui/material/StepButton";
-import Typography from "@mui/material/Typography";
-import RMAInfo from "./RMAInfo";
-
-const steps = [
-  {
-    label: "Register Product",
-    description:
-      "Hello, before you proceed to create an RMA, please register the product. It requires a series of checks to streamline the subsequent actions.",
-  },
-  {
-    label: "Create RMA",
-    description:
-      "After registering the product, you need to wait for our inspection before you can apply for RMA. You Can Click the Button Below and Start to Register the Product.",
-  },
-];
 
 export function Home() {
+
+  //Display Stepper Details
+  const steps = [
+    {
+      label: "Register Product",
+      description:
+        "Before proceeding with the RMA request, please take a moment to register the product. Thank you!",
+    },
+    {
+      label: "Create RMA",
+      description:
+        "After product registration, please await our inspection approval before initiating the RMA process. Click the button below to start registering your product. Thank you!",
+    },
+  ];
+
   const { user, logOut, newUser, setProductData, setallRmaInfo } =
     useContext(AuthContext);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [id, setId] = useState(0);
   const [open, setOpen] = useState(false);
-  const [orderStatus, setorderStatus] = useState(false);
+  const [productPage, setProductPage] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [rmaInfo, setRmaInfo] = useState(false);
   const [productTable, setProductTable] = useState([]);
   const [totalproduct, setTotalProduct] = useState([]);
-  const [serialNumberTable, setSerialNumber] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   //Stepper
-  const [activeStep, setActiveStep] = React.useState(0);
+  const [activeStep, setActiveStep] = useState(0);
 
-  const handleNext = () => {
+  const handleNextStep = () => {
     const newActiveStep = activeStep + 1;
     setActiveStep(newActiveStep);
   };
-  const handleBack = () => {
+
+  const handleBackStep = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   const handleStep = (step) => () => {
     setActiveStep(step);
+  };
+
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();  //logOut() from AuthContext 
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  const handleRegisProductPage = (product) => {
+    setProductPage(
+      product === "registed" || product === "cancel" ? false : true
+    );
   };
 
   const handleOpenConfirm = (id) => {
@@ -85,7 +105,7 @@ export function Home() {
   const handleConfirmCancel = () => {
     axios
       .put("http://localhost:3001/cancelproduct?id=" + (id || ""))
-      .then((response) => {
+      .then(() => {
         console.log("Success Cancel");
       })
       .catch((error) => {
@@ -94,13 +114,7 @@ export function Home() {
 
     handleCloseConfirm();
   };
-  const handleSignOut = async () => {
-    try {
-      await logOut();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
@@ -137,12 +151,6 @@ export function Home() {
     }
   };
 
-  const handleRegisProduct = (product) => {
-    setorderStatus(
-      product === "registed" || product === "cancel" ? false : true
-    );
-  };
-
   const handleRMA = (rma, product) => {
     if (rma === "shortcut") {
       setrmaStatus(true);
@@ -153,7 +161,7 @@ export function Home() {
     }
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     axios
       .get(
         "http://localhost:3001/getregisProduct?uid=" +
@@ -169,19 +177,7 @@ export function Home() {
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, orderStatus, rmaStatus, open, rowsPerPage, page]);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/serialnumber")
-      .then((response) => {
-        setSerialNumber(response.data);
-      })
-      .catch((error) => {
-        console.error("Error Getting data:", error);
-      });
-    document.title = "RMA";
-  }, []);
+  }, [user, productPage, rmaStatus, open, rowsPerPage, page]);
 
   useEffect(() => {
     axios
@@ -194,7 +190,7 @@ export function Home() {
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, orderStatus, rmaStatus, open]);
+  }, [user, productPage, rmaStatus, open]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -203,17 +199,17 @@ export function Home() {
   }, [searchQuery, setPage]);
   return (
     <>
-      <div className="container">
+      <div>
         <main className="main-content">
           <div className="user-content">
             <div>
               {newUser ? (
                 <h2>Hii New User , {user?.displayName}</h2>
               ) : (
-                <h2>Welcome Back {user?.displayName} !</h2>
+                <h2>Welcome Back , {user?.displayName} !!</h2>
               )}
             </div>
-            <div style={{ display: "flex", flexDirection: "row"}}>
+            <div style={{ display: "flex", flexDirection: "row" }}>
               <div
                 style={{
                   display: "flex",
@@ -224,7 +220,8 @@ export function Home() {
               >
                 {user?.email}
               </div>
-              <Avatar alt={user?.displayName} src={user?.photoURL} />
+              <Avatar alt={user?.displayName} src={user?.photoURL} /> 
+              {/* {LogOut Button} */}
               <Button
                 variant="contained"
                 size="small"
@@ -236,17 +233,17 @@ export function Home() {
             </div>
           </div>
           <div>
-            <div className="function"> 
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleRegisProduct}
-                >
-                  Register Product
-                </Button>
-                {orderStatus ? (
-                  <RegisProduct handleRegisProduct={handleRegisProduct} />
-                ) : null}
+            <div style={{display:"flex",justifyContent:"right"}}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleRegisProductPage}
+              >
+                Register Product
+              </Button>
+              {productPage ? (
+                <RegisProduct handleRegisProductPage={handleRegisProductPage} />
+              ) : null}
             </div>
             {productTable.length > 0 ? (
               <>
@@ -282,7 +279,7 @@ export function Home() {
                           align="center"
                           style={{ fontWeight: "bold" }}
                         >
-                          Receipt Picture
+                          Invoice Picture
                         </TableCell>
                         <TableCell
                           align="center"
@@ -294,7 +291,7 @@ export function Home() {
                           align="center"
                           style={{ fontWeight: "bold" }}
                         >
-                          Warranty ExpiredDate
+                          Warranty Expired Date
                         </TableCell>
                         <TableCell
                           align="center"
@@ -357,34 +354,17 @@ export function Home() {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              Receipt
+                              Invoice
                             </a>
                           </TableCell>
                           <TableCell align="center">
-                            {" "}
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_name || "-"}
+                            {rmatable.productname}                                 
                           </TableCell>
                           <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.date_manufacture
-                              ? moment(
-                                  serialNumberTable.find(
-                                    (serial) =>
-                                      rmatable.serialNum === serial.serialnumber
-                                  ).date_manufacture
-                                ).format("DD-MM-YYYY")
-                              : "-"}
+                            {rmatable.warrantyexpired ? moment(rmatable.warrantyexpired).format("DD-MM-YYYY") : "-"}
                           </TableCell>
                           <TableCell align="center">
-                            {serialNumberTable.find(
-                              (serial) =>
-                                rmatable.serialNum === serial.serialnumber
-                            )?.product_status || "-"}
+                            {rmatable.warrantyStatus}
                           </TableCell>
                           <TableCell align="center">
                             {rmatable.rma_id !== null &&
@@ -466,13 +446,10 @@ export function Home() {
                 />
               </>
             ) : (
-              <Box sx={{ width: "50%", margin: "auto" , paddingTop:"100px" }}>
+              <Box sx={{ width: "50%", margin: "auto", paddingTop: "100px" }}>
                 <Stepper
                   nonLinear
                   activeStep={activeStep}
-                  sx={{
-                    width: "100%", // Set the width to 100%
-                  }}
                 >
                   {steps.map((step, index) => (
                     <Step key={step.label}>
@@ -484,7 +461,7 @@ export function Home() {
                 </Stepper>
                 <div>
                   <React.Fragment>
-                    <Typography sx={{ mt: 2, mb: 1, py: 1 }}>
+                    <Typography sx={{ mt: 3, mb: 1, py: 1 }}>
                       {steps[activeStep].description}
                     </Typography>
 
@@ -492,14 +469,14 @@ export function Home() {
                       <Button
                         color="inherit"
                         disabled={activeStep === 0}
-                        onClick={handleBack}
+                        onClick={handleBackStep}
                         sx={{ mr: 1 }}
                       >
                         Back
                       </Button>
                       <Box sx={{ flex: "1 1 auto" }} />
                       <Button
-                        onClick={handleNext}
+                        onClick={handleNextStep}
                         disabled={activeStep === 1}
                         sx={{ mr: 1 }}
                       >
@@ -509,7 +486,7 @@ export function Home() {
                         <Button
                           variant="contained"
                           size="small"
-                          onClick={handleRegisProduct}
+                          onClick={handleRegisProductPage}
                         >
                           Register Product
                         </Button>
@@ -542,7 +519,6 @@ export function Home() {
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
         {rmaInfo ? (
           <RMAInfo
-            serialNumberTable={serialNumberTable}
             handleInfo={handleInfo}
           />
         ) : null}

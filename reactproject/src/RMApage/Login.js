@@ -5,8 +5,10 @@ import Button from "@mui/material/Button";
 import axios from "axios";
 
 export function Login() {
+
   const { googleSignIn, user , setNewUser } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
@@ -25,10 +27,11 @@ export function Login() {
     setIsLoading(true);
     const delayRedirect = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 2500);
 
     return () => clearTimeout(delayRedirect);
   }, [user]);
+
 
   useEffect(() => {
     if (user != null) {
@@ -43,9 +46,7 @@ export function Login() {
           {
             setNewUser(true);
           }
-          if (response.data.admin) {
-            navigate("/admin");
-          } else {
+          else {
             navigate("/home");
           }
         })

@@ -15,11 +15,6 @@ html {
 }
 
 /* Layout styles */
-.container {
-  display: flex;
-  height: 100%;
-}
-
 .main-content {
   flex: 1;
   padding-left: 20px;
@@ -33,12 +28,6 @@ html {
   justify-content: space-between;
   padding: 5px;
   
-}
-
-
-.function {
-  display: flex;
-  justify-content: right;
 }
 
 .overlay {

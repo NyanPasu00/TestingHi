@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { signOut, onAuthStateChanged, signInWithRedirect } from "firebase/auth";
 import { auth, provider } from "../firebase";
+import styled from "@emotion/styled";
 
 const AuthContext = createContext();
 
@@ -27,6 +28,19 @@ export const AuthProvider = ({ children }) => {
     alignItems: "center",
     marginBottom: "5px",
   };
+
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
+
   const googleSignIn = () => {
     signInWithRedirect(auth, provider);
   };
@@ -57,7 +71,8 @@ export const AuthProvider = ({ children }) => {
         setallRmaInfo,
         infoSectionStyle,
         labelStyle,
-        contentStyle
+        contentStyle, 
+        VisuallyHiddenInput
       }}
     >
       {children}

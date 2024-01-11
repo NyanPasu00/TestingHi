@@ -3,8 +3,8 @@ import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthProvider";
 import axios from "axios";
 
-export default function RMAInfo({ handleInfo, serialNumberTable }) {
-  const { allRmaInfo, infoSectionStyle, contentStyle, labelStyle } =
+export default function RMAInfo({ handleInfo }) {
+  const { allRmaInfo , labelStyle } =
     useContext(AuthContext);
 
   const [copySuccess, setCopySuccess] = useState(false);
@@ -30,7 +30,7 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
         console.error("Error Getting data:", error);
       });
   };
-
+  console.log(allRmaInfo);
   return (
     <div className="overlay">
       <div className="overlay-content">
@@ -57,102 +57,109 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
             }}
           >
             <h2>RMA Info</h2>
-            <div style={infoSectionStyle}>
-              <div style={contentStyle}>
-                <label style={labelStyle}>Name :</label>
-                <div>{allRmaInfo.name}</div>
-              </div>
-              <div style={contentStyle}>
-                <label style={labelStyle}>Phone :</label>
-                <div>{allRmaInfo.phone}</div>
-              </div>
-              <div style={contentStyle}>
-                <label style={labelStyle}>Email :</label>
-                <div>{allRmaInfo.email}</div>
-              </div>
 
-              <div style={contentStyle}>
-                <label style={labelStyle}>Address :</label>
-                <div style={{ paddingTop: "10px" }}>
-                  <div>{allRmaInfo.address}</div>
-                  <div>{allRmaInfo.address2}</div>
-                  <div>
-                    {allRmaInfo.city},{allRmaInfo.postcode},{allRmaInfo.country}
-                  </div>
-                </div>
-              </div>
+            <table>
+              <tbody>
+                <tr>
+                  <td style={labelStyle}>Name</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.name}</td>
+                </tr>
+                <tr>
+                  <td style={labelStyle}>Phone</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.phone}</td>
+                </tr>
+                <tr>
+                  <td style={labelStyle}>Email</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.email}</td>
+                </tr>
 
-              <div style={contentStyle}>
-                <label style={labelStyle}>Serial Number :</label>
-                <div>{allRmaInfo.serialNum}</div>
-              </div>
-              <div>
-                {serialNumberTable.map((serial) => {
-                  if (serial.serialnumber === allRmaInfo.serialNum) {
-                    return (
-                      <div key={serial.serialnumber}>
-                        <div style={contentStyle}>
-                          <label style={labelStyle}>Product Name :</label>
-                          <div>{serial.product_name}</div>
-                        </div>
-                        <div style={contentStyle}>
-                          <label style={labelStyle}>K Plus :</label>
-                          <div>{serial.kplus ? "Yes" : "No"}</div>
-                        </div>
+                <tr>
+                  <td style={labelStyle}>Address</td>
+                  <td>:</td>
+                  <td>
+                    <div style={{ paddingTop: "10px" }}>
+                      <div>{allRmaInfo.address}</div>
+                      <div>{allRmaInfo.address2}</div>
+                      <div>
+                        {allRmaInfo.city}, {allRmaInfo.postcode},{" "}
+                        {allRmaInfo.country}
                       </div>
-                    );
-                  }
-                })}
-              </div>
-              <div style={contentStyle}>
-                <label style={labelStyle}>RMA ID:</label>
-                <div>
-                  {" "}
-                  {allRmaInfo.rma_id !== null && allRmaInfo.rma_id !== undefined
-                    ? `RMA${String(allRmaInfo.rma_id).padStart(4, "0")}`
-                    : "-"}
-                </div>
-              </div>
-              <div style={contentStyle}>
-                <label style={labelStyle}>Reason :</label>
-                <div>{allRmaInfo.reason}</div>
-              </div>
-              <div style={contentStyle}>
-                <label style={labelStyle}>
-                  Supporting <br />
-                  Image And Video :{" "}
-                </label>
-                <div>
-                  <div>
-                    <a
-                      href={`http://localhost:3001/${allRmaInfo.receiptImage}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Receipt
-                    </a>
-                  </div>
-                  <div>
-                    <a
-                      href={`http://localhost:3001/${allRmaInfo.productImage}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Product Image
-                    </a>
-                  </div>
-                  <div>
-                    <a
-                      href={`http://localhost:3001/${allRmaInfo.productVideo}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Product Video
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style={labelStyle}>Serial Number</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.serialNum}</td>
+                </tr>
+
+                <tr>
+                  <td style={labelStyle}>Product Name</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.productname}</td>
+                </tr>
+                <tr>
+                  <td style={labelStyle}>K Plus</td>
+                  <td>:</td>
+                  <td>{allRmaInfo.kplus ? "Yes" : "No"}</td>
+                </tr>
+
+                <tr>
+                  <td style={labelStyle}>RMA ID</td>
+                  <td>:</td>
+                  <td>
+                    {allRmaInfo.rma_id !== null &&
+                    allRmaInfo.rma_id !== undefined
+                      ? `RMA${String(allRmaInfo.rma_id).padStart(4, "0")}`
+                      : "-"}
+                  </td>
+                </tr>
+                <tr>
+                  <td style={labelStyle}>Reason </td>
+                  <td>:</td>
+                  <td>{allRmaInfo.reason}</td>
+                </tr>
+                <tr>
+                  <td style={labelStyle}>
+                    Supporting <br /> Image And Video
+                  </td>
+                  <td>:</td>
+                  <td>
+                    <div>
+                      <a
+                        href={`http://localhost:3001/${allRmaInfo.receiptImage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Receipt
+                      </a>
+                    </div>
+                    <div>
+                      <a
+                        href={`http://localhost:3001/${allRmaInfo.productImage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Product Image
+                      </a>
+                    </div>
+                    <div>
+                      <a
+                        href={`http://localhost:3001/${allRmaInfo.productVideo}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Product Video
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             <Button
               variant="contained"
               style={{ width: "20px" }}
@@ -231,9 +238,7 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
                   }}
                   onChange={(e) => setCourier(e.target.value)}
                   required
-                >
-                 
-                </TextField>
+                ></TextField>
               </div>
               <Button
                 variant="contained"
@@ -258,7 +263,7 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
               }}
             >
               <div>
-              <h2>RMA Status</h2>
+                <h2>RMA Status</h2>
                 <h3>Confirmation of RMA Rejection</h3>
               </div>
               <div>
@@ -282,8 +287,11 @@ export default function RMAInfo({ handleInfo, serialNumberTable }) {
                 padding: "15px",
               }}
             >
-               <h2>RMA Status</h2>
-              <h3>Your RMA Confirmation Still In Pending <br/> Please wait patiently. You will be notified <br/> when there is new situation.</h3>
+              <h2>RMA Status</h2>
+              <h3>
+                Your RMA confirmation is still pending. Please be patient, and
+                we will notify you of any updates.
+              </h3>
             </div>
           )}
         </div>

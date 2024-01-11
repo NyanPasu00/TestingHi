@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const nodeMailer = require("nodemailer");
 const app = express();
 const mysql = require("mysql");
 const path = require("path");
@@ -37,35 +36,6 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
-//Sending Email
-app.post("/send-email", (req, res) => {
-  const { subject } = req.body;
-
-  const transporter = nodeMailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.GMAIL,
-      pass: process.env.PASSWORD,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.GMAIL,
-    to: "wong20030323@gmail.com",
-    subject: subject,
-    text: "This is a test email",
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send("Error sending email");
-    } else {
-      console.log("Email sent : " + info.response);
-      res.status(200).send("Email Sent Successfully");
-    }
-  });
-});
 
 app.post("/loginInformation", (req, res) => {
   const email = req.body.email;
@@ -118,6 +88,9 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
     sellerName,
     creatingDate,
     uid,
+    productname,
+    kplus,
+    warrantyExpiredDate
   } = req.body;
   const uploadedFile = req.file.filename;
 
@@ -126,7 +99,8 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
   SET name = "${name}" , email = "${email}" , phone = "${phone}",address = "${address}"
   , address2 = "${address2}", city = "${city}", postcode = ${postcode}, country = "${country}"
   , serialNum = "${serialNum}", purchaseDate = STR_TO_DATE("${purchaseDate}","%d-%m-%Y"), sellerName = "${sellerName}" ,
-  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}";
+  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}" , productname = "${productname}", 
+  kplus = "${kplus}" , warrantyexpired = STR_TO_DATE("${warrantyExpiredDate}","%d-%m-%Y") ;
 `;
 
   db.query(query, (err, result) => {
@@ -149,11 +123,13 @@ app.post(
     { name: "videofile", maxCount: 1 },
   ]),
   (req, res) => {
-    const imageFile = req.files["imagefile"].map(({ filename }) => filename);
+    const imageFile =
+      req.files["imagefile"]?.map(({ filename }) => filename) || [];
     const imageFile2 =
       req.files["imagefile2"]?.map(({ filename }) => filename) || [];
 
-    const videoFile = req.files["videofile"].map(({ filename }) => filename);
+    const videoFile =
+      req.files["videofile"]?.map(({ filename }) => filename) || [];
     const reason = req.body.reason;
     const serialNum = req.body.serialNum;
     const query = `INSERT client.createrma
@@ -176,17 +152,15 @@ app.get("/getregisProduct", (req, res) => {
   const uid = req.query.uid;
   const rowsPerPage = req.query.rowsPerPage;
   const page = req.query.page;
-  
+
   const query = `
   SELECT * , R.serialNum
   FROM client.registerproduct R
   LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
   WHERE uid = "${uid}" AND display = true
   ORDER BY R.serialNum
-  LIMIT ${rowsPerPage} OFFSET ${(page * rowsPerPage)};
-  `;  
-  // R.id , R.name , R.serialNum , R.creatingDate , E.rma_id , E.reason
-  // , E.rmaStatus , R.address , R.address2 , R.postcode , R.country , R.city , R.email , R.phone , R.receiptImage
+  LIMIT ${rowsPerPage} OFFSET ${page * rowsPerPage};
+  `;
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);
@@ -197,13 +171,13 @@ app.get("/getregisProduct", (req, res) => {
   });
 });
 
-app.get("/getTotalRegisProduct", (req,res) => {
+app.get("/getTotalRegisProduct", (req, res) => {
   const uid = req.query.uid;
-  
+
   const query = `SELECT *, R.serialNum
   FROM client.registerproduct R
   LEFT JOIN client.createrma E ON R.serialNum = E.serialNum
-  WHERE R.uid = "${uid}" AND R.display = true;`
+  WHERE R.uid = "${uid}" AND R.display = true;`;
 
   db.query(query, (err, result) => {
     if (err) {
@@ -213,7 +187,7 @@ app.get("/getTotalRegisProduct", (req,res) => {
       res.status(200).json(result);
     }
   });
-})
+});
 app.get("/serialnumber", (req, res) => {
   const query = `SELECT * FROM client.product`;
   db.query(query, (err, result) => {
@@ -221,7 +195,6 @@ app.get("/serialnumber", (req, res) => {
       console.log(err);
       res.status(500).send("Database query error");
     } else {
-      // console.log(result);
       res.status(200).json(result);
     }
   });
@@ -267,7 +240,6 @@ app.put("/updateAddress", (req, res) => {
       console.log(err);
       res.status(500).send("Database query error");
     } else {
-      // console.log(result);
       res.status(200).json(result);
     }
   });
