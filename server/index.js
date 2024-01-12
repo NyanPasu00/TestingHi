@@ -36,7 +36,6 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
-
 app.post("/loginInformation", (req, res) => {
   const email = req.body.email;
   const name = req.body.name;
@@ -86,11 +85,11 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
     serialNum,
     purchaseDate,
     sellerName,
-    creatingDate,
+    registerDate,
     uid,
     productname,
     kplus,
-    warrantyExpiredDate
+    warrantyExpiredDate,
   } = req.body;
   const uploadedFile = req.file.filename;
 
@@ -99,7 +98,7 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
   SET name = "${name}" , email = "${email}" , phone = "${phone}",address = "${address}"
   , address2 = "${address2}", city = "${city}", postcode = ${postcode}, country = "${country}"
   , serialNum = "${serialNum}", purchaseDate = STR_TO_DATE("${purchaseDate}","%d-%m-%Y"), sellerName = "${sellerName}" ,
-  creatingDate = STR_TO_DATE("${creatingDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}" , productname = "${productname}", 
+  registerDate = STR_TO_DATE("${registerDate}","%d-%m-%Y"), uid = "${uid}", receiptImage = "${uploadedFile}" , productname = "${productname}", 
   kplus = "${kplus}" , warrantyexpired = STR_TO_DATE("${warrantyExpiredDate}","%d-%m-%Y") ;
 `;
 
@@ -127,7 +126,6 @@ app.post(
       req.files["imagefile"]?.map(({ filename }) => filename) || [];
     const imageFile2 =
       req.files["imagefile2"]?.map(({ filename }) => filename) || [];
-
     const videoFile =
       req.files["videofile"]?.map(({ filename }) => filename) || [];
     const reason = req.body.reason;
