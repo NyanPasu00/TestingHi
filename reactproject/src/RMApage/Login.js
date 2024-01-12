@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useLayoutEffect, useContext} from "react";
+import React, { useEffect, useState, useLayoutEffect, useContext } from "react";
 import AuthContext from "../context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import axios from "axios";
 
 export function Login() {
-
-  const { googleSignIn, user , setNewUser } = useContext(AuthContext);
+  const { googleSignIn, user, setNewUser } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -32,7 +31,6 @@ export function Login() {
     return () => clearTimeout(delayRedirect);
   }, [user]);
 
-
   useEffect(() => {
     if (user != null) {
       axios
@@ -42,11 +40,9 @@ export function Login() {
           uid: user?.uid,
         })
         .then((response) => {
-          if(response.data.affectedRows)
-          {
+          if (response.data.affectedRows) {
             setNewUser(true);
-          }
-          else {
+          } else {
             navigate("/home");
           }
         })
@@ -62,17 +58,23 @@ export function Login() {
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          <div>
-            <h1>Login Page</h1>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => handleGoogleSignIn()}
-            >
-              Sign In With Google
-            </Button>
+          <div style={{display:"flex" , flexDirection:"column" , alignItems:"center" , marginTop:"30px"}}>
+            <div>
+              <h1>Login Page</h1>
+              <Button
+                variant="contained"
+                size="large"
+                style={{width:"300px"}}
+                onClick={() => handleGoogleSignIn()}
+              >
+                Sign In With Google
+              </Button>
+            </div>
+            <div style={{fontSize:"13px"}}>
+              By signing up,you agree to our Terms and<br/> Conditions and that you have read our Privacy Policy
+            </div>
           </div>
-        )} 
+        )}
       </div>
     </>
   );

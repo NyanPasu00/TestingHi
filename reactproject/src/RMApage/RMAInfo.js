@@ -1,11 +1,10 @@
-import { Button, TextField } from "@mui/material";
 import React, { useContext, useState } from "react";
-import AuthContext from "../context/AuthProvider";
 import axios from "axios";
+import { Button, TextField } from "@mui/material";
+import AuthContext from "../context/AuthProvider";
 
 export default function RMAInfo({ handleInfo }) {
-  const { allRmaInfo , labelStyle } =
-    useContext(AuthContext);
+  const { allRmaInfo, labelStyle } = useContext(AuthContext);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [waybill, setWaybill] = useState("");
@@ -25,12 +24,13 @@ export default function RMAInfo({ handleInfo }) {
         courier: courier,
         serialNum: allRmaInfo.serialNum,
       })
-      .then((response) => {})
+      .then(() => {
+        console.log("Success Update WayBill");
+      })
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
   };
-  console.log(allRmaInfo);
   return (
     <div className="overlay">
       <div className="overlay-content">
@@ -57,7 +57,6 @@ export default function RMAInfo({ handleInfo }) {
             }}
           >
             <h2>RMA Info</h2>
-
             <table>
               <tbody>
                 <tr>
@@ -129,33 +128,50 @@ export default function RMAInfo({ handleInfo }) {
                   </td>
                   <td>:</td>
                   <td>
-                    <div>
-                      <a
-                        href={`http://localhost:3001/${allRmaInfo.receiptImage}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Receipt
-                      </a>
-                    </div>
-                    <div>
-                      <a
-                        href={`http://localhost:3001/${allRmaInfo.productImage}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Product Image
-                      </a>
-                    </div>
-                    <div>
-                      <a
-                        href={`http://localhost:3001/${allRmaInfo.productVideo}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Product Video
-                      </a>
-                    </div>
+                    {allRmaInfo.receiptImage ? (
+                      <div>
+                        <a
+                          href={`http://localhost:3001/${allRmaInfo.receiptImage}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Receipt
+                        </a>
+                      </div>
+                    ) : null}
+                    {allRmaInfo.productImage ? (
+                      <div>
+                        <a
+                          href={`http://localhost:3001/${allRmaInfo.productImage}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Product Image
+                        </a>
+                      </div>
+                    ) : null}
+                    {allRmaInfo.productImage2 ? (
+                      <div>
+                        <a
+                          href={`http://localhost:3001/${allRmaInfo.productImage2}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Product Image2
+                        </a>
+                      </div>
+                    ) : null}
+                    {allRmaInfo.productVideo ? (
+                      <div>
+                        <a
+                          href={`http://localhost:3001/${allRmaInfo.productVideo}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Product Video
+                        </a>
+                      </div>
+                    ) : null}
                   </td>
                 </tr>
               </tbody>
@@ -168,6 +184,7 @@ export default function RMAInfo({ handleInfo }) {
               Close
             </Button>
           </div>
+
           {allRmaInfo.rmaStatus === "Approve" && (
             <div
               style={{
@@ -180,17 +197,16 @@ export default function RMAInfo({ handleInfo }) {
                 padding: "15px",
               }}
             >
-              <h2>RMA Status</h2>
-              <h3>Confirmation of RMA Approval</h3>
+              <h2>Your RMA has been Approved!</h2>
               <div>
-                Your RMA are Approved , and Please follow Our Instruction.
+                We have reviewed your RMA request and it has been approved.
+                Please proceed with the return process by following the
+                instructions below.
               </div>
               <div>
                 <b>Return Instruction</b>
               </div>
-              <div>
-                1. Packaging : Securely pack the item in its original packaging
-              </div>
+              <div>1. Packaging : Securely pack the item</div>
               <div>
                 2. RMA Number : Include the RMA number inside the package
               </div>
@@ -262,16 +278,19 @@ export default function RMAInfo({ handleInfo }) {
                 padding: "15px",
               }}
             >
+              <h2>Your RMA has been Rejected</h2>
+              <h3>Reason: Item Does Not Meet Return Criteria</h3>
               <div>
-                <h2>RMA Status</h2>
-                <h3>Confirmation of RMA Rejection</h3>
+                We regret to inform you that your RMA request has been rejected
+                because the item does not meet our return criteria.
               </div>
               <div>
-                <b>Reason for Rejection : Item not meeting return criteria</b>
+                <b>Contact Support:</b>
               </div>
               <div>
-                Contact Support : For assistance, contact us at
-                eclipse@company.com or 1-800-XXX-XXXX.
+                For further assistance, please contact us at{" "}
+                <a href="mailto:eclipse@company.com">eclipse@company.com</a> or
+                call 1-800-XXX-XXXX.
               </div>
             </div>
           )}
@@ -287,11 +306,11 @@ export default function RMAInfo({ handleInfo }) {
                 padding: "15px",
               }}
             >
-              <h2>RMA Status</h2>
-              <h3>
-                Your RMA confirmation is still pending. Please be patient, and
-                we will notify you of any updates.
-              </h3>
+              <h2>
+                Your RMA confirmation is currently under review. We appreciate
+                your patience, and we will promptly notify you of any updates or
+                decisions regarding your request.
+              </h2>
             </div>
           )}
         </div>

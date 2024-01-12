@@ -1,6 +1,6 @@
 import moment from "moment";
 import axios from "axios";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import AuthContext from "../context/AuthProvider";
 import "./style.css";
 
@@ -205,7 +205,7 @@ export function RegisProduct({ handleRegisProductPage }) {
       formData.append("warrantyExpiredDate", moment(item.serialResult.date_manufacture).format("DD-MM-YYYY"));
       formData.append("purchaseDate", item.purchaseDate);
       formData.append("sellerName", item.sellerName);
-      formData.append("creatingDate", moment().format("DD-MM-YYYY"));
+      formData.append("registerDate", moment().format("DD-MM-YYYY"));
       formData.append("uid", user?.uid);
       formData.append("file", selectedFile);
 
@@ -441,21 +441,6 @@ export function RegisProduct({ handleRegisProductPage }) {
                               onChange={(e) => handleNotFoundSerialNumber(e.target.value,index)}
                               required
                           
-                            />
-                          </div>
-                          <div>
-                            <TextField
-                              label="Model Number"
-                              id="modelnumber"
-                              size="small"
-                              type="text"
-                              style={{
-                                marginTop: "10px",
-                                width: "40ch",
-                                textAlign: "center",
-                              }}
-                              
-                              required
                             />
                           </div>
                         </div>

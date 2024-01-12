@@ -120,3 +120,8 @@ display:flex;
 padding:10px;
 
 }
+
+.boldCenteredCell {
+  text-align: center;
+  font-weight: bol
+}

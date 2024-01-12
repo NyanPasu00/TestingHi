@@ -13,7 +13,8 @@ import "./style.css";
 import axios from "axios";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 export function CreateRMA({ handleRMA }) {
-  const { productData, VisuallyHiddenInput , labelStyle} = useContext(AuthContext);
+  const { productData, VisuallyHiddenInput, labelStyle } =
+    useContext(AuthContext);
 
   const [isChecked, setIsChecked] = useState(false);
   const [confirmStatus, setconfirmStatus] = useState(false);
@@ -39,9 +40,11 @@ export function CreateRMA({ handleRMA }) {
       [id]: value,
     });
   };
+
   const handleEditAddress = () => {
     setConfirmEditAddress(true);
   };
+
   const handleCancelEditAddress = () => {
     setConfirmEditAddress(false);
   };
@@ -50,6 +53,7 @@ export function CreateRMA({ handleRMA }) {
     setEditAddress(true);
     setConfirmEditAddress(false);
   };
+
   const handleconfirmStatus = (confirm) => {
     if (editAddress) {
       if (
@@ -59,13 +63,18 @@ export function CreateRMA({ handleRMA }) {
         !newAddress.postcode ||
         !newAddress.country
       ) {
-        alert("Please full in all required Fields");
+        alert("Please full in the Address Fields");
         return;
       }
     }
 
-    if (!reasonReturn || !imageFile) {
+    if (!reasonReturn) {
       alert("Please full in all required Fields");
+      return;
+    }
+
+    if (!imageFile && !imageFile2 && !videoFile) {
+      alert("Please Insert One of File");
       return;
     } else {
       setconfirmStatus(confirm === "created" ? true : false);
@@ -124,6 +133,7 @@ export function CreateRMA({ handleRMA }) {
     const image = event.target.files[0];
     setImageFile(image);
   };
+
   const handleImageChange2 = (event) => {
     const image = event.target.files[0];
     setImageFile2(image);
@@ -140,12 +150,14 @@ export function CreateRMA({ handleRMA }) {
       window.open(imageUrl);
     }
   };
+
   const openVideoInNewTab = () => {
     if (videoFile) {
       const videoUrl = URL.createObjectURL(videoFile);
       window.open(videoUrl);
     }
   };
+
   const handleCheckBoxChange = (event) => {
     setIsChecked(event.target.checked);
   };
@@ -217,10 +229,7 @@ export function CreateRMA({ handleRMA }) {
                           id="address"
                           size="small"
                           type="address"
-                          style={{
-                            width: "40ch",
-                            textAlign: "center",
-                          }}
+                          style={{ width: "40ch" }}
                           onChange={handleNewAddress}
                           required
                         />
@@ -231,10 +240,7 @@ export function CreateRMA({ handleRMA }) {
                           id="address2"
                           size="small"
                           type="address"
-                          style={{
-                            width: "40ch",
-                            textAlign: "center",
-                          }}
+                          style={{ width: "40ch" }}
                           onChange={handleNewAddress}
                           required
                         />
@@ -245,10 +251,7 @@ export function CreateRMA({ handleRMA }) {
                           id="city"
                           size="small"
                           type="address"
-                          style={{
-                            width: "40ch",
-                            textAlign: "center",
-                          }}
+                          style={{ width: "40ch" }}
                           onChange={handleNewAddress}
                           required
                         />
@@ -259,10 +262,7 @@ export function CreateRMA({ handleRMA }) {
                           id="postcode"
                           size="small"
                           type="text"
-                          style={{
-                            width: "40ch",
-                            textAlign: "center",
-                          }}
+                          style={{ width: "40ch" }}
                           onChange={handleNewAddress}
                           required
                         />
@@ -273,10 +273,7 @@ export function CreateRMA({ handleRMA }) {
                           id="country"
                           size="small"
                           type="text"
-                          style={{
-                            width: "40ch",
-                            textAlign: "center",
-                          }}
+                          style={{ width: "40ch" }}
                           onChange={handleNewAddress}
                           required
                         />
@@ -287,15 +284,13 @@ export function CreateRMA({ handleRMA }) {
               </div>
               <div>
                 <b>
-                  Please confirm if the address shown above is <br /> where we
-                  want the items to be shipped.
+                  *Kindly confirm whether the specified address <br />
+                  is the correct location for shipping the items*
                 </b>
               </div>
-              <div></div>
               <div>
-                <label htmlFor="fileUpload">
-                  Upload images to show the item's condition for evaluation
-                </label>
+                Upload Image or Video to show the item's condition for
+                evaluation
               </div>
               <div>
                 <Button
@@ -313,9 +308,8 @@ export function CreateRMA({ handleRMA }) {
                   />
                 </Button>
               </div>
-
               {imageFile && (
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex" }}>
                   <div>
                     <p>
                       Selected file:
@@ -332,9 +326,9 @@ export function CreateRMA({ handleRMA }) {
               )}
               {imageFile ? (
                 <div>
-                  <label>
+                  <div>
                     If You Need To Upload <br /> Second Image (Not Required) :{" "}
-                  </label>
+                  </div>
                   <Button
                     component="label"
                     variant="contained"
@@ -352,7 +346,7 @@ export function CreateRMA({ handleRMA }) {
                 </div>
               ) : null}
               {imageFile2 && (
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex" }}>
                   <div>
                     <p>
                       Selected file:
@@ -385,7 +379,7 @@ export function CreateRMA({ handleRMA }) {
                 </Button>
               </div>
               {videoFile && (
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex" }}>
                   <div>
                     <p>
                       Selected file:
@@ -452,26 +446,26 @@ export function CreateRMA({ handleRMA }) {
                           <tbody>
                             <tr>
                               <td colSpan="3">
-                                <b>Contact Information</b>
+                                <h3>Contact Information</h3>
                               </td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Customer Name:</td>
+                              <td style={labelStyle}>Customer Name</td>
                               <td>:</td>
                               <td>{productData.name}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Phone:</td>
+                              <td style={labelStyle}>Phone</td>
                               <td>:</td>
                               <td>{productData.phone}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Email:</td>
+                              <td style={labelStyle}>Email</td>
                               <td>:</td>
                               <td>{productData.email}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Shipping Address:</td>
+                              <td style={labelStyle}>Shipping Address</td>
                               <td>:</td>
                               <td>
                                 {editAddress ? (
@@ -498,42 +492,42 @@ export function CreateRMA({ handleRMA }) {
 
                             <tr>
                               <td colSpan="3">
-                                <b>Product Information</b>
+                                <h3>Product Information</h3>
                               </td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Serial Number:</td>
+                              <td style={labelStyle}>Serial Number</td>
                               <td>:</td>
                               <td>{productData.serialNum}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Product Name:</td>
+                              <td style={labelStyle}>Product Name</td>
                               <td>:</td>
                               <td>{productData.productname}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>Reason of Return:</td>
+                              <td style={labelStyle}>Reason of Return</td>
                               <td>:</td>
                               <td>{reasonReturn}</td>
                             </tr>
                             <tr>
-                              <td style={labelStyle}>
-                                Supporting Information:
-                              </td>
+                              <td style={labelStyle}>Supporting Information</td>
                               <td>:</td>
                               <td>
                                 <div>
-                                  <div>
-                                    <a
-                                      href="#"
-                                      onClick={() =>
-                                        openImageInNewTab(imageFile)
-                                      }
-                                      style={{ marginLeft: "5px" }}
-                                    >
-                                      {imageFile.name}
-                                    </a>
-                                  </div>
+                                  {imageFile ? (
+                                    <div>
+                                      <a
+                                        href="#"
+                                        onClick={() =>
+                                          openImageInNewTab(imageFile)
+                                        }
+                                        style={{ marginLeft: "5px" }}
+                                      >
+                                        {imageFile.name}
+                                      </a>
+                                    </div>
+                                  ) : null}
                                   {imageFile2 ? (
                                     <div>
                                       <a
@@ -578,7 +572,6 @@ export function CreateRMA({ handleRMA }) {
                       Kindly ensure the accuracy of the information above. Once
                       confirmed, modifications cannot be made.
                     </label>
-                    <br />
 
                     <div style={{ marginTop: 10 }}>
                       <Button
@@ -608,7 +601,7 @@ export function CreateRMA({ handleRMA }) {
         </div>
       </div>
       <Dialog open={confirmEditAddress} onClose={handleEditAddress}>
-        <DialogTitle>Confirm Want To Edit Address</DialogTitle>
+        <DialogTitle>Edit Address</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to change your address?

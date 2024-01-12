@@ -33,7 +33,6 @@ import {
 } from "@mui/material";
 
 export function Home() {
-
   //Display Stepper Details
   const steps = [
     {
@@ -53,7 +52,7 @@ export function Home() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [id, setId] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
   const [productPage, setProductPage] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [rmaInfo, setRmaInfo] = useState(false);
@@ -77,15 +76,13 @@ export function Home() {
     setActiveStep(step);
   };
 
-
   const handleSignOut = async () => {
     try {
-      await logOut();  //logOut() from AuthContext 
+      await logOut(); //logOut() from AuthContext
     } catch (error) {
       console.log(error);
     }
   };
-
 
   const handleRegisProductPage = (product) => {
     setProductPage(
@@ -94,12 +91,12 @@ export function Home() {
   };
 
   const handleOpenConfirm = (id) => {
-    setOpen(true);
+    setOpenConfirmDelete(true);
     setId(id);
   };
 
   const handleCloseConfirm = () => {
-    setOpen(false);
+    setOpenConfirmDelete(false);
   };
 
   const handleConfirmCancel = () => {
@@ -114,7 +111,6 @@ export function Home() {
 
     handleCloseConfirm();
   };
-  
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
@@ -125,22 +121,58 @@ export function Home() {
     const filteredData = totalproduct.filter((rmatable) => {
       const searchQueryLowerCase = searchQuery.toLowerCase();
 
-      const nameMatch =
+      const customerNameMatch =
         rmatable.name &&
         rmatable.name.toLowerCase().includes(searchQueryLowerCase);
-      const statusMatch =
+      const rmaStatusMatch =
         rmatable.rmaStatus &&
         rmatable.rmaStatus.toLowerCase().includes(searchQueryLowerCase);
       const serialNumMatch =
         rmatable.serialNum &&
         rmatable.serialNum.toLowerCase().includes(searchQueryLowerCase);
-
-      return nameMatch || statusMatch || serialNumMatch;
+      const warrantyStatusMatch =
+        rmatable.warrantyStatus &&
+        rmatable.warrantyStatus.toLowerCase().includes(searchQueryLowerCase);
+      const productNameMatch =
+        rmatable.productname &&
+        rmatable.productname.toLowerCase().includes(searchQueryLowerCase);
+      const reasonMatch =
+        rmatable.reason &&
+        rmatable.reason.toLowerCase().includes(searchQueryLowerCase);
+      const rmaIDMatch =
+        rmatable.rma_id !== null &&
+        rmatable.rma_id !== undefined &&
+        `RMA${String(rmatable.rma_id).padStart(4, "0")}`
+          .toLowerCase()
+          .includes(searchQueryLowerCase);
+      const registerDateMatch =
+        rmatable.registerDate &&
+        new Date(rmatable.registerDate)
+          .toLocaleDateString()
+          .includes(searchQueryLowerCase);
+      const warrantyExpiredDateMatch =
+        rmatable.registerDate &&
+        moment(rmatable.warrantyexpired)
+          .format("DD-MM-YYYY")
+          .toLowerCase()
+          .includes(searchQueryLowerCase);
+      return (
+        customerNameMatch ||
+        rmaStatusMatch ||
+        serialNumMatch ||
+        warrantyStatusMatch ||
+        productNameMatch ||
+        reasonMatch ||
+        rmaIDMatch ||
+        registerDateMatch ||
+        warrantyExpiredDateMatch
+      );
     });
 
-    const startIndex = page * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    paginatedData = filteredData.slice(startIndex, endIndex);
+    paginatedData = filteredData.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
   }
 
   const handleInfo = (status, information) => {
@@ -152,7 +184,7 @@ export function Home() {
   };
 
   const handleRMA = (rma, product) => {
-    if (rma === "shortcut") {
+    if (rma === "create") {
       setrmaStatus(true);
     }
     setrmaStatus(rma === "created" || rma === "cancel" ? false : true);
@@ -177,7 +209,7 @@ export function Home() {
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, productPage, rmaStatus, open, rowsPerPage, page]);
+  }, [user, productPage, rmaStatus, openConfirmDelete, rowsPerPage, page]);
 
   useEffect(() => {
     axios
@@ -190,7 +222,7 @@ export function Home() {
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
-  }, [user, productPage, rmaStatus, open]);
+  }, [user, productPage, rmaStatus, openConfirmDelete]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -220,7 +252,7 @@ export function Home() {
               >
                 {user?.email}
               </div>
-              <Avatar alt={user?.displayName} src={user?.photoURL} /> 
+              <Avatar alt={user?.displayName} src={user?.photoURL} />
               {/* {LogOut Button} */}
               <Button
                 variant="contained"
@@ -233,7 +265,7 @@ export function Home() {
             </div>
           </div>
           <div>
-            <div style={{display:"flex",justifyContent:"right"}}>
+            <div style={{ display: "flex", justifyContent: "right" }}>
               <Button
                 variant="contained"
                 size="small"
@@ -255,7 +287,7 @@ export function Home() {
                     size="small"
                     aria-label="simple table"
                   >
-                    <TableHead className="table_header">
+                    <TableHead>
                       <TableRow>
                         <TableCell
                           align="center"
@@ -342,7 +374,7 @@ export function Home() {
                           }}
                         >
                           <TableCell component="th" scope="row">
-                            {moment(rmatable.creatingDate).format("DD-MM-YYYY")}
+                            {moment(rmatable.registerDate).format("DD-MM-YYYY")}
                           </TableCell>
                           <TableCell align="center">{rmatable.name}</TableCell>
                           <TableCell align="center">
@@ -358,10 +390,14 @@ export function Home() {
                             </a>
                           </TableCell>
                           <TableCell align="center">
-                            {rmatable.productname}                                 
+                            {rmatable.productname}
                           </TableCell>
                           <TableCell align="center">
-                            {rmatable.warrantyexpired ? moment(rmatable.warrantyexpired).format("DD-MM-YYYY") : "-"}
+                            {rmatable.warrantyexpired
+                              ? moment(rmatable.warrantyexpired).format(
+                                  "DD-MM-YYYY"
+                                )
+                              : "-"}
                           </TableCell>
                           <TableCell align="center">
                             {rmatable.warrantyStatus}
@@ -403,7 +439,7 @@ export function Home() {
                                 size="small"
                                 variant="contained"
                                 onClick={() => {
-                                  handleRMA("shortcut", rmatable);
+                                  handleRMA("create", rmatable);
                                 }}
                                 style={{
                                   width: "30px",
@@ -433,24 +469,21 @@ export function Home() {
                   </Table>
                 </TableContainer>
                 <TablePagination
-                  rowsPerPageOptions={[5, 10, 25]} // Define rows per page options
+                  rowsPerPageOptions={[5, 10, 25]}
                   component="div"
                   count={totalproduct.length}
                   rowsPerPage={rowsPerPage}
                   page={page}
-                  onPageChange={(event, newPage) => setPage(newPage)} // Handle page change
+                  onPageChange={(event, newPage) => setPage(newPage)}
                   onRowsPerPageChange={(event) => {
                     setRowsPerPage(parseInt(event.target.value, 10));
-                    setPage(0); // Reset to the first page when changing rows per page
+                    setPage(0);
                   }}
                 />
               </>
             ) : (
               <Box sx={{ width: "50%", margin: "auto", paddingTop: "100px" }}>
-                <Stepper
-                  nonLinear
-                  activeStep={activeStep}
-                >
+                <Stepper nonLinear activeStep={activeStep}>
                   {steps.map((step, index) => (
                     <Step key={step.label}>
                       <StepButton color="inherit" onClick={handleStep(index)}>
@@ -499,11 +532,11 @@ export function Home() {
           </div>
         </main>
       </div>
-      <Dialog open={open} onClose={handleCloseConfirm}>
-        <DialogTitle>Confirm Cancellation</DialogTitle>
+      <Dialog open={openConfirmDelete} onClose={handleCloseConfirm}>
+        <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to cancel this Product or RMA ??
+            Are you sure you want to Delete this Product or RMA ??
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -517,11 +550,7 @@ export function Home() {
       </Dialog>
       <div>
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
-        {rmaInfo ? (
-          <RMAInfo
-            handleInfo={handleInfo}
-          />
-        ) : null}
+        {rmaInfo ? <RMAInfo handleInfo={handleInfo} /> : null}
       </div>
     </>
   );
