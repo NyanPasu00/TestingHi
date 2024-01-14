@@ -40,6 +40,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     },
   ]);
 
+  //Insert Address
   const handleInputAddressChange = (e) => {
     const { id, value } = e.target;
     setAddress({
@@ -48,6 +49,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     });
   };
 
+  //Additional Product
   const handleAddProduct = () => {
     setProductCount(() => productCount + 1);
     setProduct([
@@ -62,6 +64,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     ]);
   };
 
+  //Cancel Product
   const handleCancelProduct = (productToRemove) => {
     if (productCount > 1) {
       setProductCount(() => productCount - 1);
@@ -71,11 +74,13 @@ export function RegisProduct({ handleRegisProductPage }) {
     }
   };
 
+  //Upload Image or PDF
   const handlePDFImageUpload = (e) => {
     const file = e.target.files[0];
     setSelectedFile(file);
   };
 
+  //If Serial Number Change Set New Serial Number and Need to Check Again
   const handleSerialNumberChange = (newSerialNumber, changeToNull, index) => {
     setProduct((prevProducts) => {
       const updatedProducts = [...prevProducts];
@@ -88,6 +93,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     });
   };
 
+  //Change DateOfPurchase
   const handleDateOfPurChaseChange = (newDate, index) => {
     setProduct((prevProducts) => {
       const updatedProducts = [...prevProducts];
@@ -99,6 +105,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     });
   };
 
+  //Seller Name Change
   const handleSellerNameChange = (newSellerName, index) => {
     setProduct((prevProducts) => {
       const updatedProducts = [...prevProducts];
@@ -110,6 +117,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     });
   };
 
+  //If Not Found Serial Number need to Insert Product_name
   const handleNotFoundSerialNumber = (newProductName,index) => {
     setProduct((prevProducts) => {
       const updatedProducts = [...prevProducts];
@@ -121,6 +129,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     });
   }
   
+  //Check Serial Number
   const handleCheckSerialNumber = (serialnumber, index) => {
     axios
       .get(
@@ -144,6 +153,7 @@ export function RegisProduct({ handleRegisProductPage }) {
       });
   };
 
+  //Open PDF and Image
   const openPDFImageInNewTab = (file) => {
     if (file) {
       const imagePDFUrl = URL.createObjectURL(file);
@@ -151,6 +161,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     }
   };
 
+  //Checking Insert All Fields Or Not
   const handleCheckingRegisProduct = (event) => {
     event.preventDefault();
     if (
@@ -188,6 +199,7 @@ export function RegisProduct({ handleRegisProductPage }) {
     }
   };
  
+  //Register The Product
   const regisProduct = () => {
     product.forEach((item) => {
       const formData = new FormData();

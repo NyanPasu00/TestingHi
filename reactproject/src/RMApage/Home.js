@@ -33,6 +33,7 @@ import {
 } from "@mui/material";
 
 export function Home() {
+
   //Display Stepper Details
   const steps = [
     {
@@ -47,19 +48,21 @@ export function Home() {
     },
   ];
 
+
   const { user, logOut, newUser, setProductData, setallRmaInfo } =
     useContext(AuthContext);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [id, setId] = useState(0);
   const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
-  const [productPage, setProductPage] = useState(false);
+  const [productPage, setRegisterProductPage] = useState(false);
   const [rmaStatus, setrmaStatus] = useState(false);
   const [rmaInfo, setRmaInfo] = useState(false);
   const [productTable, setProductTable] = useState([]);
   const [totalproduct, setTotalProduct] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
   //Stepper
   const [activeStep, setActiveStep] = useState(0);
 
@@ -76,6 +79,7 @@ export function Home() {
     setActiveStep(step);
   };
 
+  //Sign Out Function
   const handleSignOut = async () => {
     try {
       await logOut(); //logOut() from AuthContext
@@ -84,21 +88,26 @@ export function Home() {
     }
   };
 
+  //Open Register Product Page or Close it
   const handleRegisProductPage = (product) => {
-    setProductPage(
+    setRegisterProductPage(
       product === "registed" || product === "cancel" ? false : true
     );
   };
 
+
+ //Open a Confirm Page ask Delete Product or Not
   const handleOpenConfirm = (id) => {
     setOpenConfirmDelete(true);
     setId(id);
   };
 
+  //Close the Confirm Page  
   const handleCloseConfirm = () => {
     setOpenConfirmDelete(false);
   };
 
+  //Confirm Delete the Product
   const handleConfirmCancel = () => {
     axios
       .put("http://localhost:3001/cancelproduct?id=" + (id || ""))
@@ -112,6 +121,7 @@ export function Home() {
     handleCloseConfirm();
   };
 
+  //Search Item 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
   };
@@ -175,6 +185,7 @@ export function Home() {
     );
   }
 
+//Open RMA Info  or Close RMA Info
   const handleInfo = (status, information) => {
     setRmaInfo(status === "open" ? true : false);
 
@@ -183,6 +194,7 @@ export function Home() {
     }
   };
 
+  //Open Create RMA or Close Create RMA
   const handleRMA = (rma, product) => {
     if (rma === "create") {
       setrmaStatus(true);
@@ -193,6 +205,7 @@ export function Home() {
     }
   };
 
+  //This For Get the Register Product Table 
   useLayoutEffect(() => {
     axios
       .get(
@@ -211,6 +224,7 @@ export function Home() {
       });
   }, [user, productPage, rmaStatus, openConfirmDelete, rowsPerPage, page]);
 
+  //Find Out the Total Register Product For the TablePagination
   useEffect(() => {
     axios
       .get(
@@ -224,6 +238,7 @@ export function Home() {
       });
   }, [user, productPage, rmaStatus, openConfirmDelete]);
 
+  //If Search a TablePagination Page back to First Page
   useEffect(() => {
     if (searchQuery) {
       setPage(0);
@@ -266,6 +281,7 @@ export function Home() {
           </div>
           <div>
             <div style={{ display: "flex", justifyContent: "right" }}>
+              {/* {Register Product Button} */}
               <Button
                 variant="contained"
                 size="small"
@@ -273,10 +289,12 @@ export function Home() {
               >
                 Register Product
               </Button>
+              {/* {Open the Register Product Page} */}
               {productPage ? (
                 <RegisProduct handleRegisProductPage={handleRegisProductPage} />
               ) : null}
             </div>
+            {/* {Display the Table or Stepper} */}
             {productTable.length > 0 ? (
               <>
                 <h2>My Product</h2>
@@ -468,6 +486,7 @@ export function Home() {
                     </TableBody>
                   </Table>
                 </TableContainer>
+                {/* {TablePagination} */}
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]}
                   component="div"
@@ -483,6 +502,7 @@ export function Home() {
               </>
             ) : (
               <Box sx={{ width: "50%", margin: "auto", paddingTop: "100px" }}>
+                {/* {Stepper} */}
                 <Stepper nonLinear activeStep={activeStep}>
                   {steps.map((step, index) => (
                     <Step key={step.label}>
@@ -532,6 +552,7 @@ export function Home() {
           </div>
         </main>
       </div>
+       {/* {Ask For Delete Product} */}
       <Dialog open={openConfirmDelete} onClose={handleCloseConfirm}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -549,7 +570,9 @@ export function Home() {
         </DialogActions>
       </Dialog>
       <div>
+        {/* {Open Create RMA} */}
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
+         {/* {Open RMA Info} */}
         {rmaInfo ? <RMAInfo handleInfo={handleInfo} /> : null}
       </div>
     </>

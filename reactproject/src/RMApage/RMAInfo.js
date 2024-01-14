@@ -17,6 +17,7 @@ export default function RMAInfo({ handleInfo }) {
       .catch((err) => console.error("Failed to copy:", err));
   };
 
+  //Update The Waybill
   const handleWaybill = () => {
     axios
       .put("http://localhost:3001/updateWaybill", {

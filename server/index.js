@@ -36,6 +36,7 @@ db.connect((err) => {
   console.log("MySql Connected");
 });
 
+//Check The UID 
 app.post("/loginInformation", (req, res) => {
   const email = req.body.email;
   const name = req.body.name;
@@ -72,6 +73,7 @@ app.post("/loginInformation", (req, res) => {
   });
 });
 
+//Register Product
 app.post("/regisProduct", upload.single("file"), (req, res) => {
   const {
     name,
@@ -114,6 +116,7 @@ app.post("/regisProduct", upload.single("file"), (req, res) => {
   });
 });
 
+//Create RMA
 app.post(
   "/createrma",
   upload.fields([
@@ -146,6 +149,7 @@ app.post(
   }
 );
 
+//Get information from register Product
 app.get("/getregisProduct", (req, res) => {
   const uid = req.query.uid;
   const rowsPerPage = req.query.rowsPerPage;
@@ -169,6 +173,7 @@ app.get("/getregisProduct", (req, res) => {
   });
 });
 
+//Find out the TotalRegisProduct Number
 app.get("/getTotalRegisProduct", (req, res) => {
   const uid = req.query.uid;
 
@@ -186,18 +191,9 @@ app.get("/getTotalRegisProduct", (req, res) => {
     }
   });
 });
-app.get("/serialnumber", (req, res) => {
-  const query = `SELECT * FROM client.product`;
-  db.query(query, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("Database query error");
-    } else {
-      res.status(200).json(result);
-    }
-  });
-});
 
+
+//Check the Serial Number
 app.get("/checkserialnumber", (req, res) => {
   const serialnumber = req.query.serialnumber;
   const query = `SELECT * FROM client.product WHERE serialnumber="${serialnumber}"`;
@@ -213,6 +209,8 @@ app.get("/checkserialnumber", (req, res) => {
     }
   });
 });
+
+//Cancel the Product
 app.put("/cancelproduct", (req, res) => {
   const id = req.query.id;
 
@@ -227,6 +225,7 @@ app.put("/cancelproduct", (req, res) => {
   });
 });
 
+//Update the New Address at Create RMA
 app.put("/updateAddress", (req, res) => {
   const { serialNum, address, address2, city, postcode, country } = req.body;
 
@@ -243,6 +242,7 @@ app.put("/updateAddress", (req, res) => {
   });
 });
 
+//Update Way Bill
 app.put("/updateWaybill", (req, res) => {
   const { waybill, courier, serialNum } = req.body;
 

@@ -33,6 +33,7 @@ export function CreateRMA({ handleRMA }) {
   const [reasonReturn, setReasonReturn] = useState("");
   const reasonTextFieldRef = useRef(null);
 
+  //Change New Address
   const handleNewAddress = (e) => {
     const { id, value } = e.target;
     setNewAddress({
@@ -41,19 +42,23 @@ export function CreateRMA({ handleRMA }) {
     });
   };
 
+  //Click Edit Address to display Confirm Edit or Not
   const handleEditAddress = () => {
     setConfirmEditAddress(true);
   };
 
+  //Cancel Confirm Edit Address
   const handleCancelEditAddress = () => {
     setConfirmEditAddress(false);
   };
 
+  //Confirm Edit Address
   const handleConfirmEditAddress = () => {
     setEditAddress(true);
     setConfirmEditAddress(false);
   };
 
+  //Check the Value got insert or not
   const handleconfirmStatus = (confirm) => {
     if (editAddress) {
       if (
@@ -81,6 +86,7 @@ export function CreateRMA({ handleRMA }) {
     }
   };
 
+  //After Submit RMA , Ask the Details Confirm
   const handleDoubleConfirm = () => {
     setconfirmStatus(false);
     handleRMA("created");
@@ -90,6 +96,8 @@ export function CreateRMA({ handleRMA }) {
       updateAddress();
     }
   };
+
+  //Update New Address
   const updateAddress = () => {
     axios
       .put("http://localhost:3001/updateAddress", {
@@ -108,6 +116,7 @@ export function CreateRMA({ handleRMA }) {
       });
   };
 
+  //Create A RMA
   const createRMA = () => {
     const formData = new FormData();
     formData.append("reason", reasonReturn);
@@ -129,28 +138,33 @@ export function CreateRMA({ handleRMA }) {
         console.error("Error sending data:", error);
       });
   };
+
+  //Image One
   const handleImageChange = (event) => {
     const image = event.target.files[0];
     setImageFile(image);
   };
 
+  //Image 2
   const handleImageChange2 = (event) => {
     const image = event.target.files[0];
     setImageFile2(image);
   };
 
+  //Video
   const handleVideoChange = (event) => {
     const video = event.target.files[0];
     setVideoFile(video);
   };
 
+  //Open Image 
   const openImageInNewTab = (file) => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       window.open(imageUrl);
     }
   };
-
+//Open Video
   const openVideoInNewTab = () => {
     if (videoFile) {
       const videoUrl = URL.createObjectURL(videoFile);
@@ -158,10 +172,12 @@ export function CreateRMA({ handleRMA }) {
     }
   };
 
+  //Tick the CheckBox
   const handleCheckBoxChange = (event) => {
     setIsChecked(event.target.checked);
   };
 
+  //Focus on Reason
   useEffect(() => {
     if (reasonTextFieldRef.current) {
       reasonTextFieldRef.current.focus();
@@ -201,6 +217,8 @@ export function CreateRMA({ handleRMA }) {
               <div>
                 <b>Shipping Address :</b>
                 <div style={{ paddingLeft: "10px" }}>
+  
+              {/* {If Edit Address Will display TextField} */}
                   {!editAddress ? (
                     <div>
                       <div>{productData.address}</div>
@@ -308,6 +326,7 @@ export function CreateRMA({ handleRMA }) {
                   />
                 </Button>
               </div>
+              {/* {If Image File Selected Display the File Name} */}
               {imageFile && (
                 <div style={{ display: "flex" }}>
                   <div>
@@ -324,6 +343,7 @@ export function CreateRMA({ handleRMA }) {
                   </div>
                 </div>
               )}
+               {/* {If Image One File Selected will give one more Button to Upload} */}
               {imageFile ? (
                 <div>
                   <div>
@@ -345,6 +365,7 @@ export function CreateRMA({ handleRMA }) {
                   </Button>
                 </div>
               ) : null}
+              {/* {If Image File 2 Selected Display the File Name} */}
               {imageFile2 && (
                 <div style={{ display: "flex" }}>
                   <div>
@@ -378,6 +399,7 @@ export function CreateRMA({ handleRMA }) {
                   />
                 </Button>
               </div>
+              {/* {If Video File Selected Display the File Name} */}
               {videoFile && (
                 <div style={{ display: "flex" }}>
                   <div>
@@ -414,6 +436,7 @@ export function CreateRMA({ handleRMA }) {
                 </Button>
               </div>
             </div>
+            {/* {After Submit Display Confirm Status} */}
             {confirmStatus ? (
               <div className="overlay2">
                 <div className="overlay2-content">
