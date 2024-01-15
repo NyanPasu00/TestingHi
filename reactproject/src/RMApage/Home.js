@@ -224,7 +224,7 @@ export function Home() {
       });
   }, [user, productPage, rmaStatus, openConfirmDelete, rowsPerPage, page]);
 
-  //Find Out the Total Register Product For the TablePagination
+  //Find Out the Total Register Product For the TablePagination 123
   useEffect(() => {
     axios
       .get(
