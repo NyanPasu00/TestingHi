@@ -15,7 +15,7 @@ import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 export function RegisProduct({ handleRegisProductPage }) {
   const defaultDate = moment();
 
-  const { user, VisuallyHiddenInput } = useContext(AuthContext);
+  const { user, VisuallyHiddenInput , checkAndRefresh } = useContext(AuthContext);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -130,12 +130,17 @@ export function RegisProduct({ handleRegisProductPage }) {
   }
   
   //Check Serial Number
-  const handleCheckSerialNumber = (serialnumber, index) => {
+  const handleCheckSerialNumber = async(serialnumber, index) => {
+    const token = await checkAndRefresh();
     axios
       .get(
         "http://localhost:3001/checkserialnumber?serialnumber=" +
           (serialnumber || "")
-      )
+      ,{
+        headers : {
+          Authorization: `Bearer ${token}`
+        }
+      })
       .then((response) => {
         console.log(response)
         setProduct((prevProducts) => {
@@ -200,7 +205,9 @@ export function RegisProduct({ handleRegisProductPage }) {
   };
  
   //Register The Product
-  const regisProduct = () => {
+  const regisProduct = async() => {
+    const token = await checkAndRefresh();
+    
     product.forEach((item) => {
       const formData = new FormData();
       formData.append("name", fullName);
@@ -225,6 +232,7 @@ export function RegisProduct({ handleRegisProductPage }) {
         .post("http://localhost:3001/regisProduct", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`
           },
         })
         .then(() => {

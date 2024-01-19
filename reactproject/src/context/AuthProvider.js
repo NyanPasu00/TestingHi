@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import { signOut, onAuthStateChanged, signInWithRedirect } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import styled from "@emotion/styled";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -10,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [newUser, setNewUser] = useState(false);
   const [productData, setProductData] = useState({});
   const [allRmaInfo, setallRmaInfo] = useState({});
-
+  const [accessToken, setAccessToken] = useState("");
   const infoSectionStyle = {
     display: "flex",
     flexDirection: "column",
@@ -46,9 +47,54 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logOut = () => {
+    axios
+      .delete("http://localhost:3002/logout")
+      .then(() => {
+        console.log("Success Clear");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     signOut(auth);
   };
 
+  const refreshingToken = async () => {
+    try {
+      const response = await axios.post("http://localhost:3002/refreshToken");
+
+      await setAccessToken(response.data.accessToken);
+
+      return response.data.accessToken;
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+    }
+  };
+  const checkingTokenExpired = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3002/checkingExpired",
+        {
+          accessToken: accessToken,
+        }
+      );
+      return response.data.refresh;
+    } catch (error) {
+      console.error("Error checking token expiration:", error);
+    }
+  };
+  const checkAndRefresh = async () => {
+    const isTokenExpired = await checkingTokenExpired();
+
+    if (isTokenExpired) {
+      const newAccessToken = await refreshingToken();
+      console.log("New AccessToken");
+      return newAccessToken;
+    } else {
+      console.log("AccessToken is still valid");
+      return accessToken;
+    }
+  };
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -71,8 +117,11 @@ export const AuthProvider = ({ children }) => {
         setallRmaInfo,
         infoSectionStyle,
         labelStyle,
-        contentStyle, 
-        VisuallyHiddenInput
+        contentStyle,
+        VisuallyHiddenInput,
+        accessToken,
+        setAccessToken,
+        checkAndRefresh,
       }}
     >
       {children}

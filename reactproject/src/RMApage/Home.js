@@ -33,7 +33,6 @@ import {
 } from "@mui/material";
 
 export function Home() {
-
   //Display Stepper Details
   const steps = [
     {
@@ -48,9 +47,15 @@ export function Home() {
     },
   ];
 
-
-  const { user, logOut, newUser, setProductData, setallRmaInfo } =
-    useContext(AuthContext);
+  const {
+    user,
+    logOut,
+    newUser,
+    setProductData,
+    setallRmaInfo,
+    refreshingToken,
+    checkAndRefresh,
+  } = useContext(AuthContext);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [id, setId] = useState(0);
@@ -59,7 +64,8 @@ export function Home() {
   const [rmaStatus, setrmaStatus] = useState(false);
   const [rmaInfo, setRmaInfo] = useState(false);
   const [productTable, setProductTable] = useState([]);
-  const [totalproduct, setTotalProduct] = useState([]);
+  const [filterProductTable, setFilterProductTable] = useState([]);
+  const [totalRowProduct, setTotalRowProduct] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -95,97 +101,53 @@ export function Home() {
     );
   };
 
-
- //Open a Confirm Page ask Delete Product or Not
+  //Open a Confirm Page ask Delete Product or Not
   const handleOpenConfirm = (id) => {
     setOpenConfirmDelete(true);
     setId(id);
   };
 
-  //Close the Confirm Page  
+  //Close the Confirm Page
   const handleCloseConfirm = () => {
     setOpenConfirmDelete(false);
   };
 
   //Confirm Delete the Product
-  const handleConfirmCancel = () => {
-    axios
-      .put("http://localhost:3001/cancelproduct?id=" + (id || ""))
-      .then(() => {
-        console.log("Success Cancel");
-      })
-      .catch((error) => {
-        console.error("Error Getting data:", error);
-      });
+  const handleConfirmCancel = async () => {
+    const token = await checkAndRefresh();
+    try {
+      await axios.put(
+        "http://localhost:3001/cancelproduct?id=" + (id || ""),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Success Cancel");
+    } catch (error) {
+      console.error("Error Cancelling product:", error);
+    }
 
     handleCloseConfirm();
   };
 
-  //Search Item 
+  //Search Item
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
   };
   let paginatedData = productTable;
 
   if (searchQuery) {
-    const filteredData = totalproduct.filter((rmatable) => {
-      const searchQueryLowerCase = searchQuery.toLowerCase();
-
-      const customerNameMatch =
-        rmatable.name &&
-        rmatable.name.toLowerCase().includes(searchQueryLowerCase);
-      const rmaStatusMatch =
-        rmatable.rmaStatus &&
-        rmatable.rmaStatus.toLowerCase().includes(searchQueryLowerCase);
-      const serialNumMatch =
-        rmatable.serialNum &&
-        rmatable.serialNum.toLowerCase().includes(searchQueryLowerCase);
-      const warrantyStatusMatch =
-        rmatable.warrantyStatus &&
-        rmatable.warrantyStatus.toLowerCase().includes(searchQueryLowerCase);
-      const productNameMatch =
-        rmatable.productname &&
-        rmatable.productname.toLowerCase().includes(searchQueryLowerCase);
-      const reasonMatch =
-        rmatable.reason &&
-        rmatable.reason.toLowerCase().includes(searchQueryLowerCase);
-      const rmaIDMatch =
-        rmatable.rma_id !== null &&
-        rmatable.rma_id !== undefined &&
-        `RMA${String(rmatable.rma_id).padStart(4, "0")}`
-          .toLowerCase()
-          .includes(searchQueryLowerCase);
-      const registerDateMatch =
-        rmatable.registerDate &&
-        new Date(rmatable.registerDate)
-          .toLocaleDateString()
-          .includes(searchQueryLowerCase);
-      const warrantyExpiredDateMatch =
-        rmatable.registerDate &&
-        moment(rmatable.warrantyexpired)
-          .format("DD-MM-YYYY")
-          .toLowerCase()
-          .includes(searchQueryLowerCase);
-      return (
-        customerNameMatch ||
-        rmaStatusMatch ||
-        serialNumMatch ||
-        warrantyStatusMatch ||
-        productNameMatch ||
-        reasonMatch ||
-        rmaIDMatch ||
-        registerDateMatch ||
-        warrantyExpiredDateMatch
-      );
-    });
-
-    paginatedData = filteredData.slice(
+    paginatedData = filterProductTable.slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
     );
   }
 
-//Open RMA Info  or Close RMA Info
+  //Open RMA Info  or Close RMA Info
   const handleInfo = (status, information) => {
     setRmaInfo(status === "open" ? true : false);
 
@@ -205,8 +167,30 @@ export function Home() {
     }
   };
 
-  //This For Get the Register Product Table 
-  useLayoutEffect(() => {
+  const searchInTable = async () => {
+    const token = await checkAndRefresh();
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/searchProduct`,
+        {
+          searchQuery: searchQuery,
+          uid: user?.uid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setFilterProductTable(response.data);
+    } catch (error) {
+      console.error("Error in searchInTable:", error);
+    }
+  };
+
+  //This For Get the Register Product Table
+  const getMyProduct = async () => {
+    const token = await checkAndRefresh();
     axios
       .get(
         "http://localhost:3001/getregisProduct?uid=" +
@@ -214,36 +198,32 @@ export function Home() {
           "&rowsPerPage=" +
           rowsPerPage +
           "&page=" +
-          page
+          page,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       )
       .then((response) => {
-        setProductTable(response.data);
+        setTotalRowProduct(response.data.totalRow);
+        setProductTable(response.data.product);
       })
       .catch((error) => {
         console.error("Error Getting data:", error);
       });
+  };
+
+  useEffect(() => {
+    getMyProduct();
   }, [user, productPage, rmaStatus, openConfirmDelete, rowsPerPage, page]);
 
-  //Find Out the Total Register Product For the TablePagination 123
-  useEffect(() => {
-    axios
-      .get(
-        "http://localhost:3001/getTotalRegisProduct?uid=" + (user?.uid || "")
-      )
-      .then((response) => {
-        setTotalProduct(response.data);
-      })
-      .catch((error) => {
-        console.error("Error Getting data:", error);
-      });
-  }, [user, productPage, rmaStatus, openConfirmDelete]);
-
-  //If Search a TablePagination Page back to First Page
   useEffect(() => {
     if (searchQuery) {
-      setPage(0);
+      searchInTable();
     }
-  }, [searchQuery, setPage]);
+  }, [searchQuery]);
+
   return (
     <>
       <div>
@@ -295,7 +275,7 @@ export function Home() {
               ) : null}
             </div>
             {/* {Display the Table or Stepper} */}
-            {productTable.length > 0 ? (
+            {productTable ? (
               <>
                 <h2>My Product</h2>
 
@@ -490,7 +470,7 @@ export function Home() {
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]}
                   component="div"
-                  count={totalproduct.length}
+                  count={totalRowProduct}
                   rowsPerPage={rowsPerPage}
                   page={page}
                   onPageChange={(event, newPage) => setPage(newPage)}
@@ -552,7 +532,7 @@ export function Home() {
           </div>
         </main>
       </div>
-       {/* {Ask For Delete Product} */}
+      {/* {Ask For Delete Product} */}
       <Dialog open={openConfirmDelete} onClose={handleCloseConfirm}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -572,9 +552,10 @@ export function Home() {
       <div>
         {/* {Open Create RMA} */}
         {rmaStatus ? <CreateRMA handleRMA={handleRMA} /> : null}
-         {/* {Open RMA Info} */}
+        {/* {Open RMA Info} */}
         {rmaInfo ? <RMAInfo handleInfo={handleInfo} /> : null}
       </div>
+      <button onClick={refreshingToken}>Testing</button>
     </>
   );
 }

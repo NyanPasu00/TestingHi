@@ -13,7 +13,7 @@ import "./style.css";
 import axios from "axios";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 export function CreateRMA({ handleRMA }) {
-  const { productData, VisuallyHiddenInput, labelStyle } =
+  const { productData, VisuallyHiddenInput, labelStyle , checkAndRefresh } =
     useContext(AuthContext);
 
   const [isChecked, setIsChecked] = useState(false);
@@ -87,18 +87,19 @@ export function CreateRMA({ handleRMA }) {
   };
 
   //After Submit RMA , Ask the Details Confirm
-  const handleDoubleConfirm = () => {
+  const handleDoubleConfirm = async() => {
     setconfirmStatus(false);
     handleRMA("created");
-    createRMA();
+    await createRMA();
 
     if (editAddress) {
-      updateAddress();
+      await updateAddress();
     }
   };
 
   //Update New Address
-  const updateAddress = () => {
+  const updateAddress = async() => {
+    const token = await checkAndRefresh();
     axios
       .put("http://localhost:3001/updateAddress", {
         serialNum: productData.serialNum,
@@ -107,6 +108,10 @@ export function CreateRMA({ handleRMA }) {
         city: newAddress.city,
         postcode: newAddress.postcode,
         country: newAddress.country,
+      },{
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       })
       .then(() => {
         console.log("Sending Success");
@@ -117,7 +122,8 @@ export function CreateRMA({ handleRMA }) {
   };
 
   //Create A RMA
-  const createRMA = () => {
+  const createRMA = async () => {
+    const token = await checkAndRefresh();
     const formData = new FormData();
     formData.append("reason", reasonReturn);
     formData.append("serialNum", productData.serialNum);
@@ -129,6 +135,7 @@ export function CreateRMA({ handleRMA }) {
       .post("http://localhost:3001/createRMA", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
         },
       })
       .then(() => {
